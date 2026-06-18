@@ -25,36 +25,36 @@ namespace AppointmentService.Infrastructure.Data
                 new Doctor
                 {
                     Id = Guid.Parse("d1d11111-1111-1111-1111-111111111111"),
-                    FullName = "Nguyen Van An",
-                    Specialty = "Noi khoa",
-                    Qualifications = "Thac si Baci si",
+                    FullName = "Nguyễn Văn An",
+                    Specialty = "Nội khoa",
+                    Qualifications = "Thạc sĩ Bác sĩ",
                     ConsultationFee = 150000,
                     IsActive = true
                 },
                 new Doctor
                 {
                     Id = Guid.Parse("d2d22222-2222-2222-2222-222222222222"),
-                    FullName = "Tran Thi Binh",
+                    FullName = "Trần Thị Bình",
                     Specialty = "Nhi khoa",
-                    Qualifications = "Bac si Chuyen khoa 1",
+                    Qualifications = "Bác sĩ Chuyên khoa 1",
                     ConsultationFee = 200000,
                     IsActive = true
                 },
                 new Doctor
                 {
                     Id = Guid.Parse("d3d33333-3333-3333-3333-333333333333"),
-                    FullName = "Le Hoang Nam",
-                    Specialty = "Da lieu",
-                    Qualifications = "Bac si Chuyen khoa 2",
+                    FullName = "Lê Hoàng Nam",
+                    Specialty = "Da liễu",
+                    Qualifications = "Bác sĩ Chuyên khoa 2",
                     ConsultationFee = 250000,
                     IsActive = true
                 },
                 new Doctor
                 {
                     Id = Guid.Parse("d4d44444-4444-4444-4444-444444444444"),
-                    FullName = "Pham Minh Duc",
-                    Specialty = "Rang Ham Mat",
-                    Qualifications = "Tien si Y khoa",
+                    FullName = "Phạm Minh Đức",
+                    Specialty = "Răng Hàm Mặt",
+                    Qualifications = "Tiến sĩ Y khoa",
                     ConsultationFee = 300000,
                     IsActive = true
                 }

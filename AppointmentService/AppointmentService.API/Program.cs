@@ -40,7 +40,7 @@ namespace AppointmentService.API
             });
 
             // 5. Add JWT Authentication
-            var secretKey = builder.Configuration["Jwt:Secret"] ?? "SharedSecretKeyForBTLMicroservices2026GroupName5ClinicBookingSystem";
+            var secretKey = builder.Configuration["Jwt:Secret"] ?? "ThisIsMySuperSecretKeyForJwtTokenDoNotShareIt12345";
             var keyBytes = Encoding.UTF8.GetBytes(secretKey);
 
             builder.Services.AddAuthentication(options =>

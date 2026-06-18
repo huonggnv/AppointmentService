@@ -26,7 +26,7 @@ namespace AppointmentService.API.Controllers
         {
             try
             {
-                var secretKey = _configuration["Jwt:Secret"] ?? "SharedSecretKeyForBTLMicroservices2026GroupName5ClinicBookingSystem";
+                var secretKey = _configuration["Jwt:Secret"] ?? "ThisIsMySuperSecretKeyForJwtTokenDoNotShareIt12345";
                 var keyBytes = Encoding.UTF8.GetBytes(secretKey);
 
                 var claims = new[]

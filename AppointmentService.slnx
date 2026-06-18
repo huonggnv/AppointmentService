@@ -5,4 +5,5 @@
     <Project Path="AppointmentService/AppointmentService.Infrastructure/AppointmentService.Infrastructure.csproj" />
     <Project Path="AppointmentService/AppointmentService.Tests/AppointmentService.Tests.csproj" />
   </Folder>
+  <Project Path="ClinicGateway/ClinicGateway.csproj" />
 </Solution>

@@ -1,0 +1,48 @@
+{
+  "Routes": [
+    // 1. NHÓM 5: APPOINTMENT SERVICE (Dịch vụ Đặt lịch khám)
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "26.88.31.108",
+          "Port": 5000
+        }
+      ],
+      "UpstreamPathTemplate": "/api/appointments-service/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+
+    // 2. NHÓM 4: MEDICAL RECORD SERVICE (Dịch vụ Bệnh án điện tử)
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "26.15.45.202",
+          "Port": 5000
+        }
+      ],
+      "UpstreamPathTemplate": "/api/medical-records-service/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+
+    // 3. NHÓM 6: PHARMACY & BILLING SERVICE (Dịch vụ Kho thuốc & Viện phí / Auth)
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "26.71.15.204",
+          "Port": 5000
+        }
+      ],
+      "UpstreamPathTemplate": "/api/pharmacy-billing-service/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:8000"
+  }
+}

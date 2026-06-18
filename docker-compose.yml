@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -23,9 +21,36 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=db,1433;Database=AppointmentDB;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;MultipleActiveResultSets=true
-      - Jwt__Secret=SharedSecretKeyForBTLMicroservices2026GroupName5ClinicBookingSystem
+      - Jwt__Secret=ThisIsMySuperSecretKeyForJwtTokenDoNotShareIt12345
     depends_on:
       - db
+    restart: always
+
+  gateway:
+    image: clinic-gateway:latest
+    container_name: clinic_gateway
+    build:
+      context: .
+      dockerfile: ClinicGateway/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Jwt__Secret=ThisIsMySuperSecretKeyForJwtTokenDoNotShareIt12345
+    depends_on:
+      - appointment-service
+    restart: always
+
+  frontend:
+    image: clinic-frontend:latest
+    container_name: clinic_web
+    build:
+      context: ./ClinicFrontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - gateway
     restart: always
 
 volumes:
