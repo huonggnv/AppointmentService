@@ -197,7 +197,7 @@
             <!-- Admin: Thấy Quản lý Admin -->
             <v-tab v-if="currentUser.role === 'Admin'" value="admin" class="font-weight-bold">
               <v-icon icon="mdi-cog" class="mr-2" color="primary" />
-              Quản Trị Bác Sĩ
+              Quản Trị Hệ Thống
             </v-tab>
             <!-- Mọi người: Xem được Tivi hàng chờ -->
             <v-tab value="tv" class="font-weight-bold">
@@ -393,6 +393,100 @@
                   <div class="text-subtitle-2 mb-1">Giờ khám: <strong>{{ recentTicket.timeSlot }}</strong></div>
                   <div class="text-caption text-warning mt-2">
                     Lưu ý: Bệnh nhân mang mã lịch hẹn này đến quầy tiếp tân vào ngày khám để xác nhận và lấy số thứ tự.
+                  </div>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <!-- BỆNH NHÂN: LỊCH SỬ KHÁM BỆNH & ĐƠN THUỐC CŨ -->
+            <v-row class="mt-6">
+              <v-col cols="12">
+                <v-card border flat class="bg-surface pa-6">
+                  <div class="d-flex align-center mb-4">
+                    <v-icon icon="mdi-history" color="info" class="mr-2" />
+                    <h2 class="text-h6 font-weight-bold">Tra cứu Lịch sử khám bệnh & Đơn thuốc cũ</h2>
+                  </div>
+                  <v-row density="comfortable" class="align-center">
+                    <v-col cols="12" sm="8" md="6">
+                      <v-text-field
+                        v-model="patientSearchPhone"
+                        label="Nhập số điện thoại bệnh nhân"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-phone"
+                        placeholder="Ví dụ: 0987654321"
+                        hide-details
+                        @keyup.enter="fetchPatientHistory(patientSearchPhone)"
+                      />
+                    </v-col>
+                    <v-col cols="12" sm="4" md="2">
+                      <v-btn
+                        block
+                        color="info"
+                        size="large"
+                        class="font-weight-bold"
+                        prepend-icon="mdi-magnify"
+                        :loading="patientHistoryLoading"
+                        @click="fetchPatientHistory(patientSearchPhone)"
+                      >
+                        Tra Cứu
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+
+                  <v-divider class="my-6" v-if="patientHistories.length > 0 || patientHistoryLoading" />
+
+                  <v-progress-linear v-if="patientHistoryLoading" indeterminate color="info" class="mb-4" />
+
+                  <div v-if="patientHistories.length > 0">
+                    <div class="text-subtitle-1 font-weight-bold mb-4 text-info">Lịch sử các lần khám trước:</div>
+                    <v-expansion-panels variant="popout">
+                      <v-expansion-panel
+                        v-for="hist in patientHistories"
+                        :key="hist.id"
+                        class="mb-3 border rounded"
+                        bg-color="slate-900"
+                      >
+                        <v-expansion-panel-title class="font-weight-bold text-subtitle-2">
+                          <div class="d-flex align-center justify-space-between w-100 pr-4">
+                            <span>Ngày khám: {{ formatDate(hist.appointmentDate) }} - Bác sĩ: {{ hist.doctorName }}</span>
+                            <v-chip color="success" size="small">{{ hist.diagnosis }}</v-chip>
+                          </div>
+                        </v-expansion-panel-title>
+                        <v-expansion-panel-text class="pt-3">
+                          <div class="mb-2"><strong>Triệu chứng:</strong> {{ hist.symptoms }}</div>
+                          <div class="mb-2"><strong>Chẩn đoán bệnh:</strong> {{ hist.diagnosis }}</div>
+                          <div class="mb-3"><strong>Lời dặn của Bác sĩ:</strong> {{ hist.notes || 'Uống thuốc đúng liều lượng' }}</div>
+                          
+                          <div class="text-subtitle-2 font-weight-bold mb-2 text-success">Đơn thuốc được kê:</div>
+                          <v-table density="comfortable" class="bg-surface rounded border mb-4">
+                            <thead>
+                              <tr>
+                                <th class="text-left font-weight-bold">Tên thuốc</th>
+                                <th class="text-left font-weight-bold">Số lượng</th>
+                                <th class="text-left font-weight-bold">Liều dùng</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr v-for="item in hist.prescription" :key="item.drugId || item.name">
+                                <td class="font-weight-bold text-primary">{{ item.drugName || item.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.dosage }}</td>
+                              </tr>
+                              <tr v-if="!hist.prescription || hist.prescription.length === 0">
+                                <td colspan="3" class="text-center text-grey">Không kê đơn thuốc</td>
+                              </tr>
+                            </tbody>
+                          </v-table>
+                          
+                          <div class="text-right">
+                            <v-btn color="primary" class="font-weight-bold" prepend-icon="mdi-printer" @click="printPrescription(hist)">
+                              In Đơn Thuốc
+                            </v-btn>
+                          </div>
+                        </v-expansion-panel-text>
+                      </v-expansion-panel>
+                    </v-expansion-panels>
                   </div>
                 </v-card>
               </v-col>
@@ -660,11 +754,24 @@
                         <div class="text-subtitle-2 font-weight-bold text-grey-lighten-1">Thông tin bệnh nhân</div>
                         <div class="text-body-1 py-1">Họ tên: <strong>{{ activeConsultation.patientName }}</strong></div>
                         <div class="text-body-1 py-1">Số thứ tự khám: <strong>{{ activeConsultation.queueNumber }}</strong></div>
+                        <div class="text-body-1 py-1">Số điện thoại: <strong>{{ activeConsultation.patientPhone }}</strong></div>
                       </v-col>
                       <v-col cols="12" sm="6">
-                        <div class="text-subtitle-2 font-weight-bold text-grey-lighten-1">Lịch sử khám bệnh cũ</div>
-                        <v-btn size="small" variant="outlined" color="info" class="mt-1" @click="viewPatientHistory(activeConsultation.patientPhone)">
-                          Xem lịch sử bệnh án
+                        <div class="text-subtitle-2 font-weight-bold text-grey-lighten-1 mb-1">Hồ sơ sức khỏe & tiền sử</div>
+                        <div class="mb-1">
+                          <span class="text-caption text-grey">Dị ứng:</span>
+                          <v-chip size="small" :color="patientProfile.allergies !== 'Không' && patientProfile.allergies !== 'Không dị ứng' ? 'error' : 'grey'" class="ml-2 font-weight-bold">
+                            {{ patientProfile.allergies }}
+                          </v-chip>
+                        </div>
+                        <div class="mb-2">
+                          <span class="text-caption text-grey">Tiền sử:</span>
+                          <v-chip size="small" color="blue-grey" class="ml-2">
+                            {{ patientProfile.medicalHistory }}
+                          </v-chip>
+                        </div>
+                        <v-btn size="small" variant="outlined" color="info" prepend-icon="mdi-history" @click="viewPatientHistory(activeConsultation.patientPhone)">
+                          Xem lịch sử khám
                         </v-btn>
                       </v-col>
                     </v-row>
@@ -929,89 +1036,419 @@
 
           <!-- 5. ADMIN PORTAL TAB (Quản trị Bác sĩ & Lịch hẹn của Nhóm 1) -->
           <v-window-item value="admin">
-            <v-row>
-              <!-- Thêm bác sĩ trực ca -->
-              <v-col cols="12" md="4">
-                <v-card border flat class="bg-surface pa-6 mb-6">
-                  <div class="text-h6 font-weight-bold mb-4 text-primary">Thêm Bác sĩ trực ca</div>
-                  <v-form @submit.prevent="addNewDoctor">
-                    <v-text-field
-                      v-model="doctorForm.fullName"
-                      label="Họ và tên Bác sĩ"
-                      variant="outlined"
-                      density="comfortable"
-                      class="mb-3"
-                      required
-                    />
-                    <v-text-field
-                      v-model="doctorForm.specialty"
-                      label="Chuyên khoa"
-                      placeholder="Nội khoa, Da liễu, Nhi khoa, Răng Hàm Mặt"
-                      variant="outlined"
-                      density="comfortable"
-                      class="mb-3"
-                      required
-                    />
-                    <v-text-field
-                      v-model="doctorForm.qualifications"
-                      label="Học vị bằng cấp"
-                      placeholder="Thạc sĩ Bác sĩ, Tiến sĩ Y khoa"
-                      variant="outlined"
-                      density="comfortable"
-                      class="mb-3"
-                      required
-                    />
-                    <v-text-field
-                      v-model.number="doctorForm.consultationFee"
-                      label="Phí khám bệnh"
-                      type="number"
-                      variant="outlined"
-                      density="comfortable"
-                      class="mb-4"
-                      required
-                    />
-                    <v-btn type="submit" color="primary" block size="large" class="font-weight-bold" :loading="loading">
-                      Lưu thông tin bác sĩ
-                    </v-btn>
-                  </v-form>
-                </v-card>
-              </v-col>
+            <!-- Tabs phụ của Admin -->
+            <v-tabs v-model="adminSubTab" color="primary" rounded="lg" class="mb-6" border>
+              <v-tab value="doctors-management" class="font-weight-bold">
+                <v-icon icon="mdi-doctor" class="mr-2" />
+                Quản lý Bác sĩ
+              </v-tab>
+              <v-tab value="schedules-management" class="font-weight-bold" @click="fetchAdminSchedules">
+                <v-icon icon="mdi-calendar-clock" class="mr-2" />
+                Quản lý Lịch trực
+              </v-tab>
+              <v-tab value="financial-reports" class="font-weight-bold" @click="fetchAdminFinancials">
+                <v-icon icon="mdi-finance" class="mr-2" />
+                Báo cáo Tài chính
+              </v-tab>
+            </v-tabs>
 
-              <!-- Danh sách Bác sĩ hiện tại -->
-              <v-col cols="12" md="8">
+            <v-window v-model="adminSubTab">
+              <!-- Subtab 1: Quản lý Bác sĩ (CRUD) -->
+              <v-window-item value="doctors-management">
+                <v-row>
+                  <!-- Thêm bác sĩ trực ca -->
+                  <v-col cols="12" md="4">
+                    <v-card border flat class="bg-surface pa-6 mb-6">
+                      <div class="text-h6 font-weight-bold mb-4 text-primary">Thêm Bác sĩ mới</div>
+                      <v-form @submit.prevent="addNewDoctor">
+                        <v-text-field
+                          v-model="doctorForm.fullName"
+                          label="Họ và tên Bác sĩ"
+                          variant="outlined"
+                          density="comfortable"
+                          class="mb-3"
+                          required
+                        />
+                        <v-text-field
+                          v-model="doctorForm.specialty"
+                          label="Chuyên khoa"
+                          placeholder="Nội khoa, Da liễu, Nhi khoa, Răng Hàm Mặt"
+                          variant="outlined"
+                          density="comfortable"
+                          class="mb-3"
+                          required
+                        />
+                        <v-text-field
+                          v-model="doctorForm.qualifications"
+                          label="Học vị bằng cấp"
+                          placeholder="Thạc sĩ Bác sĩ, Tiến sĩ Y khoa"
+                          variant="outlined"
+                          density="comfortable"
+                          class="mb-3"
+                          required
+                        />
+                        <v-text-field
+                          v-model.number="doctorForm.consultationFee"
+                          label="Phí khám bệnh (đ)"
+                          type="number"
+                          variant="outlined"
+                          density="comfortable"
+                          class="mb-4"
+                          required
+                        />
+                        <v-btn type="submit" color="primary" block size="large" class="font-weight-bold" :loading="loading">
+                          Lưu thông tin bác sĩ
+                        </v-btn>
+                      </v-form>
+                    </v-card>
+                  </v-col>
+
+                  <!-- Danh sách Bác sĩ hiện tại -->
+                  <v-col cols="12" md="8">
+                    <v-card border flat class="bg-surface pa-6 mb-6">
+                      <div class="text-h6 font-weight-bold mb-4 text-primary">Danh sách bác sĩ phòng khám</div>
+                      
+                      <v-table density="comfortable" class="bg-surface rounded border">
+                        <thead>
+                          <tr>
+                            <th class="text-left font-weight-bold">Bác sĩ</th>
+                            <th class="text-left font-weight-bold">Chuyên khoa</th>
+                            <th class="text-left font-weight-bold">Bằng cấp</th>
+                            <th class="text-left font-weight-bold">Phí khám</th>
+                            <th class="text-left font-weight-bold">Trạng thái</th>
+                            <th class="text-center font-weight-bold">Thao tác</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="doc in doctors" :key="doc.id">
+                            <td class="font-weight-bold">{{ doc.fullName }}</td>
+                            <td>
+                              <v-chip color="primary" size="small">{{ doc.specialty }}</v-chip>
+                            </td>
+                            <td>{{ doc.qualifications }}</td>
+                            <td class="text-success font-weight-bold">{{ formatMoney(doc.consultationFee) }}đ</td>
+                            <td>
+                              <v-chip size="small" :color="doc.isActive ? 'success' : 'error'">
+                                {{ doc.isActive ? 'Đang trực' : 'Nghỉ trực' }}
+                              </v-chip>
+                            </td>
+                            <td class="text-center">
+                              <v-btn icon="mdi-pencil" size="x-small" variant="text" color="info" class="mr-1" @click="editDoctor(doc)" />
+                              <v-btn icon="mdi-power" size="x-small" variant="text" :color="doc.isActive ? 'error' : 'success'" @click="deleteDoctorInfo(doc.id)" />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </v-table>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-window-item>
+
+              <!-- Subtab 2: Quản lý Lịch trực -->
+              <v-window-item value="schedules-management">
+                <v-row>
+                  <!-- Form Thêm lịch trực -->
+                  <v-col cols="12" md="4">
+                    <v-card border flat class="bg-surface pa-6 mb-6">
+                      <div class="text-h6 font-weight-bold mb-4 text-primary">Tạo Lịch trực Bác sĩ</div>
+                      <v-form @submit.prevent="createAdminSchedule">
+                        <v-select
+                          v-model="adminScheduleForm.doctorId"
+                          :items="doctors"
+                          item-title="fullName"
+                          item-value="id"
+                          label="Chọn Bác sĩ"
+                          variant="outlined"
+                          density="comfortable"
+                          class="mb-3"
+                          required
+                        />
+                        <v-text-field
+                          v-model="adminScheduleForm.date"
+                          label="Ngày trực"
+                          type="date"
+                          variant="outlined"
+                          density="comfortable"
+                          class="mb-3"
+                          required
+                        />
+                        <v-select
+                          v-model="adminScheduleForm.shiftType"
+                          :items="['Sang', 'Chieu', 'Toi']"
+                          label="Ca khám"
+                          variant="outlined"
+                          density="comfortable"
+                          class="mb-3"
+                          required
+                          @update:model-value="(val) => {
+                            if (val === 'Sang') {
+                              adminScheduleForm.startTime = '08:00:00';
+                              adminScheduleForm.endTime = '12:00:00';
+                            } else if (val === 'Chieu') {
+                              adminScheduleForm.startTime = '13:30:00';
+                              adminScheduleForm.endTime = '17:30:00';
+                            } else {
+                              adminScheduleForm.startTime = '18:00:00';
+                              adminScheduleForm.endTime = '21:00:00';
+                            }
+                          }"
+                        />
+                        <v-row dense>
+                          <v-col cols="6">
+                            <v-text-field
+                              v-model="adminScheduleForm.startTime"
+                              label="Giờ bắt đầu"
+                              placeholder="08:00:00"
+                              variant="outlined"
+                              density="comfortable"
+                              class="mb-3"
+                              required
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              v-model="adminScheduleForm.endTime"
+                              label="Giờ kết thúc"
+                              placeholder="12:00:00"
+                              variant="outlined"
+                              density="comfortable"
+                              class="mb-3"
+                              required
+                            />
+                          </v-col>
+                        </v-row>
+                        <v-text-field
+                          v-model.number="adminScheduleForm.maxPatients"
+                          label="Số bệnh nhân tối đa"
+                          type="number"
+                          variant="outlined"
+                          density="comfortable"
+                          class="mb-4"
+                          required
+                        />
+                        <v-btn type="submit" color="primary" block size="large" class="font-weight-bold" :loading="loading">
+                          Lưu Lịch Trực
+                        </v-btn>
+                      </v-form>
+                    </v-card>
+                  </v-col>
+
+                  <!-- Bảng Lịch trực hiện tại -->
+                  <v-col cols="12" md="8">
+                    <v-card border flat class="bg-surface pa-6 mb-6">
+                      <div class="text-h6 font-weight-bold mb-4 text-primary">Lịch phân ca trực bác sĩ</div>
+                      
+                      <v-table density="comfortable" class="bg-surface rounded border">
+                        <thead>
+                          <tr>
+                            <th class="text-left font-weight-bold">Bác sĩ</th>
+                            <th class="text-left font-weight-bold">Ngày trực</th>
+                            <th class="text-left font-weight-bold">Ca</th>
+                            <th class="text-left font-weight-bold">Khung giờ</th>
+                            <th class="text-left font-weight-bold">Bệnh nhân đã đặt</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="sch in adminSchedules" :key="sch.id">
+                            <td class="font-weight-bold">{{ sch.doctorName }}</td>
+                            <td>{{ formatDate(sch.date) }}</td>
+                            <td>
+                              <v-chip :color="sch.shiftType === 'Sang' ? 'success' : (sch.shiftType === 'Chieu' ? 'info' : 'warning')" size="small">
+                                {{ sch.shiftType }}
+                              </v-chip>
+                            </td>
+                            <td>{{ sch.startTime }} - {{ sch.endTime }}</td>
+                            <td>
+                              <strong>{{ sch.currentBookings }}</strong> / {{ sch.maxPatients }}
+                            </td>
+                          </tr>
+                          <tr v-if="adminSchedules.length === 0">
+                            <td colspan="5" class="text-center text-grey py-4">Chưa có lịch phân ca nào được tải hoặc thiết lập</td>
+                          </tr>
+                        </tbody>
+                      </v-table>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-window-item>
+
+              <!-- Subtab 3: Báo cáo Tài chính -->
+              <v-window-item value="financial-reports">
                 <v-card border flat class="bg-surface pa-6 mb-6">
-                  <div class="text-h6 font-weight-bold mb-4 text-primary">Danh sách bác sĩ phòng khám</div>
+                  <div class="text-h6 font-weight-bold mb-4 text-primary">Báo cáo tài chính phòng khám</div>
                   
+                  <v-row class="mb-6">
+                    <v-col cols="12" sm="4">
+                      <v-card color="primary-darken-1" border class="pa-4">
+                        <div class="text-caption text-grey-lighten-2">TỔNG DOANH THU ĐÃ THU</div>
+                        <div class="text-h4 font-weight-black mt-2 text-white">{{ formatMoney(adminFinancials.totalRevenue) }}đ</div>
+                      </v-card>
+                    </v-col>
+                    <v-col cols="12" sm="4">
+                      <v-card color="success-darken-1" border class="pa-4">
+                        <div class="text-caption text-grey-lighten-2">HÓA ĐƠN ĐÃ THANH TOÁN</div>
+                        <div class="text-h4 font-weight-black mt-2 text-white">{{ adminFinancials.paidCount }} hóa đơn</div>
+                        <div class="text-body-2 text-success mt-1">Đã thu: {{ formatMoney(adminFinancials.paidAmount) }}đ</div>
+                      </v-card>
+                    </v-col>
+                    <v-col cols="12" sm="4">
+                      <v-card color="warning-darken-1" border class="pa-4">
+                        <div class="text-caption text-grey-lighten-2">HÓA ĐƠN CHƯA THANH TOÁN</div>
+                        <div class="text-h4 font-weight-black mt-2 text-white">{{ adminFinancials.pendingCount }} hóa đơn</div>
+                        <div class="text-body-2 text-warning mt-1">Chờ thu: {{ formatMoney(adminFinancials.pendingAmount) }}đ</div>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+
+                  <div class="text-subtitle-1 font-weight-bold mb-3">Danh sách hóa đơn chi tiết:</div>
                   <v-table density="comfortable" class="bg-surface rounded border">
                     <thead>
                       <tr>
-                        <th class="text-left font-weight-bold">Bác sĩ</th>
-                        <th class="text-left font-weight-bold">Chuyên khoa</th>
-                        <th class="text-left font-weight-bold">Bằng cấp</th>
+                        <th class="text-left font-weight-bold">Bệnh nhân</th>
+                        <th class="text-left font-weight-bold">Số điện thoại</th>
                         <th class="text-left font-weight-bold">Phí khám</th>
+                        <th class="text-left font-weight-bold">Phí thuốc</th>
+                        <th class="text-left font-weight-bold">Tổng hóa đơn</th>
                         <th class="text-left font-weight-bold">Trạng thái</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="doc in doctors" :key="doc.id">
-                        <td class="font-weight-bold">{{ doc.fullName }}</td>
+                      <tr v-for="bill in bills" :key="bill.id">
+                        <td class="font-weight-bold">{{ bill.patientName }}</td>
+                        <td>{{ bill.patientPhone }}</td>
+                        <td>{{ formatMoney(bill.consultationFee) }}đ</td>
+                        <td>{{ formatMoney(bill.medicationFee) }}đ</td>
+                        <td class="text-success font-weight-bold">{{ formatMoney(bill.totalAmount) }}đ</td>
                         <td>
-                          <v-chip color="primary" size="small">{{ doc.specialty }}</v-chip>
-                        </td>
-                        <td>{{ doc.qualifications }}</td>
-                        <td class="text-success font-weight-bold">{{ formatMoney(doc.consultationFee) }}đ</td>
-                        <td>
-                          <v-chip size="small" :color="doc.isActive ? 'success' : 'error'">
-                            {{ doc.isActive ? 'Đang trực' : 'Nghỉ trực' }}
+                          <v-chip size="small" :color="bill.status === 'DaThanhToan' || bill.status === 'Paid' ? 'success' : 'warning'">
+                            {{ bill.status === 'DaThanhToan' || bill.status === 'Paid' ? 'Đã thu tiền' : 'Chưa thanh toán' }}
                           </v-chip>
                         </td>
                       </tr>
                     </tbody>
                   </v-table>
                 </v-card>
-              </v-col>
-            </v-row>
+              </v-window-item>
+            </v-window>
           </v-window-item>
+
+          <!-- Dialog Chỉnh Sửa Thông Tin Bác Sĩ -->
+          <v-dialog v-model="editDoctorDialog" max-width="500">
+            <v-card border class="bg-surface pa-4">
+              <v-card-title class="text-h6 font-weight-bold text-primary px-2">
+                Chỉnh sửa thông tin Bác sĩ
+              </v-card-title>
+              <v-card-text class="px-2 pt-4 pb-0">
+                <v-text-field
+                  v-model="editingDoctor.fullName"
+                  label="Họ và tên"
+                  variant="outlined"
+                  density="comfortable"
+                  class="mb-3"
+                />
+                <v-text-field
+                  v-model="editingDoctor.specialty"
+                  label="Chuyên khoa"
+                  variant="outlined"
+                  density="comfortable"
+                  class="mb-3"
+                />
+                <v-text-field
+                  v-model="editingDoctor.qualifications"
+                  label="Học vị/Bằng cấp"
+                  variant="outlined"
+                  density="comfortable"
+                  class="mb-3"
+                />
+                <v-text-field
+                  v-model.number="editingDoctor.consultationFee"
+                  label="Phí khám bệnh"
+                  type="number"
+                  variant="outlined"
+                  density="comfortable"
+                  class="mb-3"
+                />
+                <v-checkbox
+                  v-model="editingDoctor.isActive"
+                  label="Bác sĩ đang hoạt động (Đang trực)"
+                  color="success"
+                  hide-details
+                  class="mb-2"
+                />
+              </v-card-text>
+              <v-card-actions class="px-2 pt-2">
+                <v-spacer />
+                <v-btn variant="text" color="grey" @click="editDoctorDialog = false">Hủy</v-btn>
+                <v-btn color="primary" class="font-weight-bold" @click="updateDoctorInfo" :loading="loading">Lưu thay đổi</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <!-- Dialog Lịch Sử Khám Bệnh Bệnh Nhân (Xem từ phía Bác sĩ) -->
+          <v-dialog v-model="patientHistoryDialog" max-width="800">
+            <v-card border class="bg-surface pa-6">
+              <v-card-title class="text-h6 font-weight-bold text-primary d-flex align-center justify-space-between px-0">
+                <span>Lịch sử khám bệnh cũ</span>
+                <v-btn icon="mdi-close" variant="text" size="small" @click="patientHistoryDialog = false" />
+              </v-card-title>
+              
+              <v-card-text class="px-0 pt-4">
+                <v-progress-linear v-if="patientHistoryLoading" color="primary" indeterminate class="mb-4" />
+                
+                <div v-if="patientHistories.length === 0" class="text-center py-8 text-grey">
+                  Chưa ghi nhận lịch sử khám bệnh cũ cho số điện thoại này.
+                </div>
+                
+                <v-expansion-panels v-else variant="popout" class="bg-surface">
+                  <v-expansion-panel
+                    v-for="hist in patientHistories"
+                    :key="hist.id"
+                    class="mb-3 border rounded"
+                    bg-color="slate-900"
+                  >
+                    <v-expansion-panel-title class="font-weight-bold text-subtitle-2 text-info">
+                      <div class="d-flex align-center justify-space-between w-100 pr-4">
+                        <span>{{ formatDate(hist.appointmentDate) }} - {{ hist.doctorName }}</span>
+                        <v-chip color="success" size="x-small">{{ hist.diagnosis }}</v-chip>
+                      </div>
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text class="pt-3">
+                      <div class="mb-2"><strong>Triệu chứng lâm sàng:</strong> {{ hist.symptoms }}</div>
+                      <div class="mb-2"><strong>Chẩn đoán:</strong> {{ hist.diagnosis }}</div>
+                      <div class="mb-3"><strong>Lời dặn:</strong> {{ hist.notes || 'Uống thuốc theo đơn' }}</div>
+                      
+                      <div class="text-subtitle-2 font-weight-bold mb-1 text-success">Đơn thuốc:</div>
+                      <v-table density="compact" class="bg-surface rounded border mb-3">
+                        <thead>
+                          <tr>
+                            <th>Tên Thuốc</th>
+                            <th>Số Lượng</th>
+                            <th>Liều dùng</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="item in hist.prescription" :key="item.drugId || item.name">
+                            <td class="font-weight-bold">{{ item.drugName || item.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.dosage }}</td>
+                          </tr>
+                          <tr v-if="!hist.prescription || hist.prescription.length === 0">
+                            <td colspan="3" class="text-center text-grey">Không kê đơn thuốc</td>
+                          </tr>
+                        </tbody>
+                      </v-table>
+                      
+                      <div class="text-right">
+                        <v-btn size="small" variant="outlined" color="primary" prepend-icon="mdi-printer" @click="printPrescription(hist)">
+                          In đơn thuốc này
+                        </v-btn>
+                      </div>
+                    </v-expansion-panel-text>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+              </v-card-text>
+            </v-card>
+          </v-dialog>
 
           <!-- 6. TV QUEUE SCREEN TAB -->
           <v-window-item value="tv">
@@ -1955,6 +2392,7 @@ export default {
           dosage: ''
         }
       }
+      fetchPatientProfile(activeConsultation.value.patientPhone)
       showAlert(`Bắt đầu ghi nhận bệnh án cho bệnh nhân: ${qItem.patientName}`, 'info')
     }
 
@@ -1995,19 +2433,6 @@ export default {
       const drug = drugs.value.find(d => d.id === drugId)
       if (drug) {
         activeConsultation.value.currentDrug.dosage = `Uống ngày 2 lần, mỗi lần 1 ${drug.unit} sau ăn`
-      }
-    }
-
-    const viewPatientHistory = (phone) => {
-      const history = medicalRecords.value.filter(mr => mr.patientPhone === phone)
-      if (history.length === 0) {
-        showAlert('Không tìm thấy lịch sử khám bệnh cũ của bệnh nhân này.', 'info')
-      } else {
-        let msg = `Lịch sử bệnh án (${history.length} lần khám trước):\n`
-        history.forEach((h) => {
-          msg += `[${h.date}] Triệu chứng: ${h.symptoms} -> Chẩn đoán: ${h.diagnosis}. Đơn thuốc: ${h.prescription.map(p => p.drugName).join(', ')}\n`
-        })
-        showAlert(msg, 'success')
       }
     }
 
@@ -2152,7 +2577,7 @@ export default {
       try {
         loading.value = true
         const newDoc = {
-          id: 'doc_' + Guid.NewGuid(),
+          id: 'doc_' + Math.random().toString(36).substr(2, 9),
           fullName: doctorForm.value.fullName,
           specialty: doctorForm.value.specialty,
           qualifications: doctorForm.value.qualifications,
@@ -2185,6 +2610,446 @@ export default {
       } finally {
         loading.value = false
       }
+    }
+
+    // Bổ sung các biến và hàm cho đề tài 05
+    const adminSubTab = ref('doctors-management')
+    const patientSearchPhone = ref('')
+    const patientHistories = ref([])
+    const patientHistoryLoading = ref(false)
+    const adminSchedules = ref([])
+    const adminScheduleForm = ref({
+      doctorId: '',
+      date: new Date().toISOString().split('T')[0],
+      startTime: '08:00:00',
+      endTime: '12:00:00',
+      shiftType: 'Sang',
+      maxPatients: 10
+    })
+    const editDoctorDialog = ref(false)
+    const editingDoctor = ref({
+      id: '',
+      fullName: '',
+      specialty: '',
+      qualifications: '',
+      consultationFee: 100000,
+      isActive: true
+    })
+    const patientProfile = ref({
+      phone: '',
+      allergies: 'Không',
+      medicalHistory: 'Không'
+    })
+    const patientHistoryDialog = ref(false)
+    const adminFinancials = ref({
+      totalRevenue: 0,
+      paidCount: 0,
+      paidAmount: 0,
+      pendingCount: 0,
+      pendingAmount: 0
+    })
+
+    const fetchPatientProfile = async (phone) => {
+      if (!phone) return
+      try {
+        if (isMockMode.value) {
+          patientProfile.value = {
+            phone: phone,
+            allergies: phone.endsWith('1') ? 'Dị ứng với Penicillin' : 'Không',
+            medicalHistory: phone.endsWith('2') ? 'Tiền sử tăng huyết áp' : 'Không có tiền sử bệnh lý đặc biệt'
+          }
+        } else {
+          const url = `${apiUrl.value.replace('appointments-service', 'medical-records-service')}/patients?phone=${phone}`
+          const res = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${currentUser.value.token}` }
+          })
+          if (res.ok) {
+            const data = await res.json()
+            patientProfile.value = {
+              phone: phone,
+              allergies: data.allergies || 'Không',
+              medicalHistory: data.medicalHistory || 'Không'
+            }
+          } else {
+            patientProfile.value = {
+              phone: phone,
+              allergies: 'Không tìm thấy dữ liệu',
+              medicalHistory: 'Không tìm thấy dữ liệu'
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Không thể tải hồ sơ bệnh nhân', e)
+        patientProfile.value = {
+          phone: phone,
+          allergies: 'Lỗi kết nối API hồ sơ bệnh nhân',
+          medicalHistory: 'Lỗi kết nối API hồ sơ bệnh nhân'
+        }
+      }
+    }
+
+    const fetchPatientHistory = async (phone) => {
+      if (!phone) return
+      patientHistoryLoading.value = true
+      try {
+        if (isMockMode.value) {
+          const records = medicalRecords.value.filter(r => r.patientPhone === phone)
+          patientHistories.value = records.map(r => ({
+            id: r.id,
+            appointmentCode: 'APP_' + Math.floor(Math.random() * 100000),
+            patientName: r.patientName,
+            patientPhone: r.patientPhone,
+            appointmentDate: r.date,
+            timeSlot: '09:00:00',
+            doctorName: 'Bác sĩ mẫu',
+            status: 'DaKham',
+            notes: r.notes,
+            diagnosis: r.diagnosis,
+            symptoms: r.symptoms,
+            prescription: r.prescription || []
+          }))
+        } else {
+          const appUrl = `${apiUrl.value}/appointments/by-phone/${phone}`
+          const appRes = await fetch(appUrl)
+          let appointmentsData = []
+          if (appRes.ok) {
+            appointmentsData = await appRes.json()
+          }
+
+          const mrUrl = `${apiUrl.value.replace('appointments-service', 'medical-records-service')}/medical-records?phone=${phone}`
+          let medicalRecordsData = []
+          try {
+            const mrRes = await fetch(mrUrl, {
+              headers: { 'Authorization': `Bearer ${currentUser.value.token}` }
+            })
+            if (mrRes.ok) {
+              medicalRecordsData = await mrRes.json()
+            }
+          } catch (e) {
+            console.error('Không thể kết nối Medical Record Service', e)
+          }
+
+          patientHistories.value = appointmentsData.map(app => {
+            const record = medicalRecordsData.find(mr => 
+              mr.appointmentId === app.id || 
+              (mr.patientPhone === app.patientPhone && mr.date.startsWith(app.appointmentDate.split('T')[0]))
+            )
+            return {
+              id: app.id,
+              appointmentCode: app.appointmentCode,
+              patientName: app.patientName,
+              patientPhone: app.patientPhone,
+              appointmentDate: app.appointmentDate,
+              timeSlot: app.timeSlot,
+              doctorName: app.doctorName,
+              status: app.status,
+              notes: app.notes,
+              diagnosis: record ? record.diagnosis : 'Chưa ghi nhận',
+              symptoms: record ? record.symptoms : 'Chưa ghi nhận',
+              prescription: record ? record.prescription : []
+            }
+          })
+        }
+      } catch (err) {
+        showAlert(err.message, 'error')
+      } finally {
+        patientHistoryLoading.value = false
+      }
+    }
+
+    const viewPatientHistory = async (phone) => {
+      await fetchPatientHistory(phone)
+      patientHistoryDialog.value = true
+    }
+
+    const editDoctor = (doc) => {
+      editingDoctor.value = { ...doc }
+      editDoctorDialog.value = true
+    }
+
+    const updateDoctorInfo = async () => {
+      try {
+        loading.value = true
+        if (isMockMode.value) {
+          const idx = doctors.value.findIndex(d => d.id === editingDoctor.value.id)
+          if (idx !== -1) {
+            doctors.value[idx] = { ...editingDoctor.value }
+            specialties.value = [...new Set(doctors.value.map(d => d.specialty))]
+          }
+          showAlert(`Đã cập nhật thông tin bác sĩ ${editingDoctor.value.fullName} (Giả lập)`, 'success')
+        } else {
+          const url = `${apiUrl.value}/doctors/${editingDoctor.value.id}`
+          const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentUser.value.token}`
+            },
+            body: JSON.stringify(editingDoctor.value)
+          })
+          if (!res.ok) throw new Error('Không thể cập nhật thông tin bác sĩ')
+          await fetchDoctors()
+          showAlert(`Đã cập nhật thông tin bác sĩ ${editingDoctor.value.fullName} thành công!`, 'success')
+        }
+        editDoctorDialog.value = false
+      } catch (err) {
+        showAlert(err.message, 'error')
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const deleteDoctorInfo = async (id) => {
+      const docName = doctors.value.find(d => d.id === id)?.fullName || ''
+      if (!confirm(`Bạn có chắc chắn muốn ngừng kích hoạt bác sĩ ${docName}?`)) return
+      try {
+        loading.value = true
+        if (isMockMode.value) {
+          const doc = doctors.value.find(d => d.id === id)
+          if (doc) {
+            doc.isActive = !doc.isActive
+          }
+          showAlert('Đã thay đổi trạng thái hoạt động bác sĩ (Giả lập)', 'success')
+        } else {
+          const url = `${apiUrl.value}/doctors/${id}`
+          const res = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${currentUser.value.token}`
+            }
+          })
+          if (!res.ok) throw new Error('Không thể thay đổi trạng thái hoạt động bác sĩ')
+          await fetchDoctors()
+          showAlert('Đã thay đổi trạng thái hoạt động bác sĩ thành công!', 'success')
+        }
+      } catch (err) {
+        showAlert(err.message, 'error')
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const fetchAdminSchedules = async () => {
+      if (isMockMode.value) {
+        adminSchedules.value = [
+          { id: 'sch1', doctorId: 'd1d11111-1111-1111-1111-111111111111', doctorName: 'Nguyễn Văn An', date: '2026-06-18', startTime: '08:00:00', endTime: '12:00:00', shiftType: 'Sang', currentBookings: 2, maxPatients: 10 },
+          { id: 'sch2', doctorId: 'd2d22222-2222-2222-2222-222222222222', doctorName: 'Trần Thị Bình', date: '2026-06-18', startTime: '13:30:00', endTime: '17:30:00', shiftType: 'Chieu', currentBookings: 1, maxPatients: 15 }
+        ]
+        return
+      }
+      try {
+        const url = `${apiUrl.value}/schedules`
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${currentUser.value.token}`
+          }
+        })
+        if (!res.ok) throw new Error('Không thể tải lịch trực của bác sĩ')
+        const data = await res.json()
+        adminSchedules.value = data.map(s => {
+          const doc = doctors.value.find(d => d.id === s.doctorId)
+          return {
+            ...s,
+            doctorName: doc ? doc.fullName : 'Không xác định',
+            shiftType: s.shiftType === 0 ? 'Sang' : (s.shiftType === 1 ? 'Chieu' : 'Toi')
+          }
+        })
+      } catch (err) {
+        showAlert(err.message, 'error')
+      }
+    }
+
+    const createAdminSchedule = async () => {
+      try {
+        loading.value = true
+        const shiftVal = adminScheduleForm.value.shiftType === 'Sang' ? 0 : (adminScheduleForm.value.shiftType === 'Chieu' ? 1 : 2)
+        const newSchedule = {
+          doctorId: adminScheduleForm.value.doctorId,
+          date: adminScheduleForm.value.date,
+          startTime: adminScheduleForm.value.startTime,
+          endTime: adminScheduleForm.value.endTime,
+          shiftType: shiftVal,
+          maxPatients: adminScheduleForm.value.maxPatients
+        }
+
+        if (isMockMode.value) {
+          const doc = doctors.value.find(d => d.id === newSchedule.doctorId)
+          adminSchedules.value.push({
+            id: 'sch_' + Math.random().toString(36).substr(2, 9),
+            doctorId: newSchedule.doctorId,
+            doctorName: doc ? doc.fullName : 'Bác sĩ giả lập',
+            date: newSchedule.date,
+            startTime: newSchedule.startTime,
+            endTime: newSchedule.endTime,
+            shiftType: adminScheduleForm.value.shiftType,
+            currentBookings: 0,
+            maxPatients: newSchedule.maxPatients
+          })
+          showAlert('Đã thêm lịch trực mới (Giả lập)', 'success')
+        } else {
+          const url = `${apiUrl.value}/schedules`
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentUser.value.token}`
+            },
+            body: JSON.stringify(newSchedule)
+          })
+          if (!res.ok) {
+            const errMsg = await res.text()
+            throw new Error(errMsg || 'Không thể tạo lịch trực mới')
+          }
+          await fetchAdminSchedules()
+          showAlert('Đã tạo lịch trực mới thành công!', 'success')
+        }
+      } catch (err) {
+        showAlert(err.message, 'error')
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const fetchAdminFinancials = async () => {
+      if (isMockMode.value) {
+        const paid = bills.value.filter(b => b.status === 'DaThanhToan' || b.status === 'Paid')
+        const pending = bills.value.filter(b => b.status === 'ChuaThanhToan' || b.status === 'Unpaid')
+        const totalPaid = paid.reduce((sum, b) => sum + (b.totalAmount || 0), 0)
+        const totalPending = pending.reduce((sum, b) => sum + (b.totalAmount || 0), 0)
+        adminFinancials.value = {
+          totalRevenue: totalPaid,
+          paidCount: paid.length,
+          paidAmount: totalPaid,
+          pendingCount: pending.length,
+          pendingAmount: totalPending
+        }
+        return
+      }
+      try {
+        const url = `${apiUrl.value.replace('appointments-service', 'pharmacy-billing-service')}/bills`
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${currentUser.value.token}` }
+        })
+        if (!res.ok) throw new Error('Không thể tải dữ liệu báo cáo tài chính')
+        const data = await res.json()
+        const paid = data.filter(b => b.status === 'DaThanhToan' || b.status === 'Paid')
+        const pending = data.filter(b => b.status === 'ChuaThanhToan' || b.status === 'Unpaid')
+        const totalPaid = paid.reduce((sum, b) => sum + (b.totalAmount || b.amount || 0), 0)
+        const totalPending = pending.reduce((sum, b) => sum + (b.totalAmount || b.amount || 0), 0)
+        adminFinancials.value = {
+          totalRevenue: totalPaid,
+          paidCount: paid.length,
+          paidAmount: totalPaid,
+          pendingCount: pending.length,
+          pendingAmount: totalPending
+        }
+      } catch (err) {
+        showAlert(err.message, 'error')
+      }
+    }
+
+    const printPrescription = (historyItem) => {
+      const printWindow = window.open('', '_blank');
+      const htmlContent = `
+        <html>
+          <head>
+            <title>Đơn Thuốc - Phòng Khám Clinic</title>
+            <style>
+              body { font-family: 'Arial', sans-serif; padding: 40px; color: #000; }
+              h1, h3 { text-align: center; margin-bottom: 5px; }
+              .info { margin-bottom: 20px; line-height: 1.6; }
+              .label { font-weight: bold; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #000; padding: 10px; text-align: left; }
+              th { background-color: #f2f2f2; }
+              .footer { margin-top: 40px; text-align: right; font-style: italic; }
+            </style>
+          </head>
+          <body>
+            <h1>ĐƠN THUỐC ĐIỆN TỬ</h1>
+            <h3>Phòng Khám Đa Khoa Spro</h3>
+            <hr />
+            <div class="info">
+              <p><span class="label">Bệnh nhân:</span> ${historyItem.patientName}</p>
+              <p><span class="label">Số điện thoại:</span> ${historyItem.patientPhone}</p>
+              <p><span class="label">Ngày khám:</span> ${formatDate(historyItem.appointmentDate)}</p>
+              <p><span class="label">Bác sĩ kê đơn:</span> ${historyItem.doctorName}</p>
+              <p><span class="label">Triệu chứng:</span> ${historyItem.symptoms || 'Chưa ghi nhận'}</p>
+              <p><span class="label">Chẩn đoán:</span> ${historyItem.diagnosis || 'Chưa ghi nhận'}</p>
+              <p><span class="label">Lời dặn:</span> ${historyItem.notes || 'Uống thuốc theo đơn'}</p>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Tên Thuốc</th>
+                  <th>Số Lượng</th>
+                  <th>Liều Dùng</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(historyItem.prescription || []).map(p => `
+                  <tr>
+                    <td>${p.drugName || p.name}</td>
+                    <td>${p.quantity}</td>
+                    <td>${p.dosage}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="footer">
+              <p>Ngày ${new Date().toLocaleDateString('vi-VN')}</p>
+              <p>Bác sĩ ký tên</p>
+              <br/><br/><br/>
+              <p>${historyItem.doctorName}</p>
+            </div>
+            <script>
+              window.onload = function() { window.print(); window.close(); }
+            </scr${'ipt'}>
+          </body>
+        </html>
+      `;
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }
+
+    const printQueueTicket = (ticket) => {
+      const printWindow = window.open('', '_blank');
+      const htmlContent = `
+        <html>
+          <head>
+            <title>Phiếu Khám Bệnh - ${ticket.patientName}</title>
+            <style>
+              body { font-family: 'Arial', sans-serif; padding: 30px; text-align: center; color: #000; }
+              .ticket-container { border: 2px solid #000; padding: 20px; border-radius: 10px; max-width: 400px; margin: 0 auto; }
+              .clinic-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+              .number { font-size: 72px; font-weight: bold; margin: 20px 0; }
+              .details { text-align: left; line-height: 1.8; margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px; }
+              .label { font-weight: bold; }
+              .footer { margin-top: 20px; font-size: 12px; font-style: italic; }
+            </style>
+          </head>
+          <body>
+            <div class="ticket-container">
+              <div class="clinic-name">PHÒNG KHÁM ĐA KHOA SPRO</div>
+              <div>PHIẾU KHÁM BỆNH</div>
+              <div class="number">${ticket.queueNumber || 'N/A'}</div>
+              <div class="details">
+                <div><span class="label">Bệnh nhân:</span> ${ticket.patientName}</div>
+                <div><span class="label">Số điện thoại:</span> ${ticket.patientPhone}</div>
+                <div><span class="label">Bác sĩ:</span> ${ticket.doctorName}</div>
+                <div><span class="label">Khung giờ:</span> ${ticket.timeSlot}</div>
+                <div><span class="label">Ngày khám:</span> ${formatDate(ticket.appointmentDate)}</div>
+              </div>
+              <div class="footer">Vui lòng chờ gọi số thứ tự tại cửa phòng khám.</div>
+            </div>
+            <script>
+              window.onload = function() { window.print(); window.close(); }
+            </scr${'ipt'}>
+          </body>
+        </html>
+      `;
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
     }
 
     // Watch tab changes to auto-load data for the selected tab
@@ -2262,6 +3127,19 @@ export default {
       tvQueue,
       tvQueueGroupedByDoctor,
 
+      // Bổ sung đề tài 05
+      adminSubTab,
+      patientSearchPhone,
+      patientHistories,
+      patientHistoryLoading,
+      adminSchedules,
+      adminScheduleForm,
+      editDoctorDialog,
+      editingDoctor,
+      patientProfile,
+      patientHistoryDialog,
+      adminFinancials,
+
       // Functions
       selectDoctor,
       selectSchedule,
@@ -2288,6 +3166,16 @@ export default {
       payBill,
       addNewDrug,
       addNewDoctor,
+      editDoctor,
+      updateDoctorInfo,
+      deleteDoctorInfo,
+      fetchAdminSchedules,
+      createAdminSchedule,
+      fetchAdminFinancials,
+      fetchPatientProfile,
+      fetchPatientHistory,
+      printPrescription,
+      printQueueTicket,
       
       // Helpers
       formatMoney,

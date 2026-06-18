@@ -40,7 +40,19 @@
       "UpstreamHttpMethod": [ "POST" ]
     },
     {
-      "DownstreamPathTemplate": "/api/queue/tv",
+      "DownstreamPathTemplate": "/api/appointments/by-phone/{phone}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "26.88.31.108",
+          "Port": 5000
+        }
+      ],
+      "UpstreamPathTemplate": "/api/appointments-service/appointments/by-phone/{phone}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/queue/active",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -84,7 +96,7 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/queue/checkin",
+      "DownstreamPathTemplate": "/api/queue/confirm-appointment/{appointmentId}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -92,7 +104,7 @@
           "Port": 5000
         }
       ],
-      "UpstreamPathTemplate": "/api/appointments-service/queue/checkin",
+      "UpstreamPathTemplate": "/api/appointments-service/queue/confirm-appointment/{appointmentId}",
       "UpstreamHttpMethod": [ "POST" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -126,6 +138,38 @@
       ],
       "UpstreamPathTemplate": "/api/appointments-service/queue/status",
       "UpstreamHttpMethod": [ "PUT" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/doctors/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "26.88.31.108",
+          "Port": 5000
+        }
+      ],
+      "UpstreamPathTemplate": "/api/appointments-service/doctors/{id}",
+      "UpstreamHttpMethod": [ "PUT", "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/schedules",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "26.88.31.108",
+          "Port": 5000
+        }
+      ],
+      "UpstreamPathTemplate": "/api/appointments-service/schedules",
+      "UpstreamHttpMethod": [ "GET", "POST" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []

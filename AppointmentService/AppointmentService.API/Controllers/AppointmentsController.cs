@@ -308,5 +308,50 @@ namespace AppointmentService.API.Controllers
                 return StatusCode(500, $"Loi he thong: {ex.Message}");
             }
         }
+
+        // GET: api/appointments/by-phone/{phone}
+        [HttpGet("by-phone/{phone}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<AppointmentDto>>> GetByPhone(string phone)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(phone))
+                {
+                    return BadRequest("So dien thoai khong duoc de trong.");
+                }
+
+                var appointments = await _appointmentRepository.GetQueryable()
+                    .Include(a => a.Doctor)
+                    .Where(a => a.PatientPhone == phone)
+                    .OrderByDescending(a => a.AppointmentDate)
+                    .ThenByDescending(a => a.TimeSlot)
+                    .ToListAsync();
+
+                var dtos = appointments.Select(a => new AppointmentDto
+                {
+                    Id = a.Id,
+                    AppointmentCode = a.AppointmentCode,
+                    PatientName = a.PatientName,
+                    PatientPhone = a.PatientPhone,
+                    PatientEmail = a.PatientEmail,
+                    AppointmentDate = a.AppointmentDate,
+                    TimeSlot = a.TimeSlot.ToString(@"hh\:mm\:ss"),
+                    DoctorId = a.DoctorId,
+                    DoctorName = a.Doctor != null ? a.Doctor.FullName : "Khong xac dinh",
+                    ScheduleId = a.ScheduleId,
+                    Status = a.Status.ToString(),
+                    QueueNumber = a.QueueNumber,
+                    Notes = a.Notes,
+                    CreatedAt = a.CreatedAt
+                }).ToList();
+
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Loi he thong: {ex.Message}");
+            }
+        }
     }
 }
