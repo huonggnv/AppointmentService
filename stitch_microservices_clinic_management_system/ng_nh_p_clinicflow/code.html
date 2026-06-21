@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClinicFlow - Đăng nhập</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f3f4f6",
+                        "secondary": "#006c47",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "outline-variant": "#c3c6d6",
+                        "outline": "#737685",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "on-secondary-fixed-variant": "#005235",
+                        "inverse-primary": "#b2c5ff",
+                        "on-secondary-fixed": "#002113",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb4a3",
+                        "tertiary-container": "#b02300",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary-container": "#ffc6b9",
+                        "primary-container": "#0052cc",
+                        "on-tertiary-fixed": "#3d0600",
+                        "secondary-fixed-dim": "#65dca4",
+                        "secondary-container": "#82f9be",
+                        "on-tertiary-fixed-variant": "#8b1a00",
+                        "on-primary-fixed": "#001848",
+                        "surface-container": "#edeef0",
+                        "primary-fixed": "#dae2ff",
+                        "on-surface": "#191c1e",
+                        "inverse-on-surface": "#f0f1f3",
+                        "background": "#f8f9fb",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-dim": "#d9dadc",
+                        "tertiary": "#851800",
+                        "surface-variant": "#e1e2e4",
+                        "tertiary-fixed": "#ffdad2",
+                        "on-primary-container": "#c4d2ff",
+                        "on-background": "#191c1e",
+                        "surface-bright": "#f8f9fb",
+                        "primary": "#003d9b",
+                        "on-secondary-container": "#00734c",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e1e2e4",
+                        "on-surface-variant": "#434654",
+                        "surface-tint": "#0c56d0",
+                        "surface": "#f8f9fb",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#82f9be",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "sidebar-width": "260px",
+                        "container-padding": "24px",
+                        "gutter": "16px",
+                        "sidebar-collapsed": "72px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Inter"],
+                        "mono-data": ["JetBrains Mono"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "mono-data": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .login-bg-overlay {
+            background: linear-gradient(135deg, rgba(0, 61, 155, 0.85) 0%, rgba(0, 108, 71, 0.7) 100%);
+        }
+        .glass-panel {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .pattern-bg {
+            background-color: #f8f9fb;
+            background-image:  radial-gradient(#003d9b 0.5px, transparent 0.5px), radial-gradient(#003d9b 0.5px, #f8f9fb 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0,10px 10px;
+            opacity: 0.05;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-fixed-dim selection:text-primary">
+<main class="min-h-screen flex items-center justify-center relative overflow-hidden p-6">
+<!-- Background Elements -->
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="A professional, wide-angle photograph of a modern, high-tech hospital corridor with clean glass surfaces, soft ambient blue lighting, and architectural precision. The scene conveys a sense of calm, sterile efficiency and advanced medical technology. The color palette is dominated by soft whites and deep medical blues, creating a dependable and authoritative atmosphere." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrrDQulonMWEblb9fjn9grkbX16t1SO31z6maZ-ojTnim38nFDicW_PEAML0VAZccuyChsADkVzOI3BZDl1bqzu2BYp4IEF93klt8mMtSjFhy4IHiFrUpIX4M-QB77lLQKnI-LRg1Wgd-jkVQeFwNlDVJ9Rj14V-0dNIgjxu2K0yTpj3elT152EA-UB9F1yNny84rAFtZVflYy73SwOCY1uY2ca2yjQE7ESVAwfVsz-AlZQW6bpl2uQwYEuOsZcdCrhAVgodLscF5g')"></div>
+<div class="absolute inset-0 login-bg-overlay"></div>
+<div class="absolute inset-0 pattern-bg"></div>
+</div>
+<!-- Login Container -->
+<div class="w-full max-w-[1100px] grid lg:grid-cols-2 bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden relative z-10">
+<!-- Branding/Info Side -->
+<div class="hidden lg:flex flex-col justify-between p-12 bg-primary text-on-primary relative overflow-hidden">
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-12">
+<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+<h1 class="font-headline-md text-headline-md font-bold tracking-tight">ClinicFlow</h1>
+</div>
+<div class="space-y-8 max-w-md">
+<h2 class="font-headline-lg text-headline-lg leading-tight">Giải pháp quản lý y tế thông minh &amp; tin cậy</h2>
+<p class="font-body-lg text-body-lg text-on-primary/80">
+                            Tối ưu hóa quy trình khám chữa bệnh, quản lý hồ sơ bệnh nhân và lịch hẹn chuyên nghiệp trong một nền tảng duy nhất.
+                        </p>
+</div>
+</div>
+<div class="relative z-10 pt-12">
+<div class="flex items-center gap-4 p-4 rounded-lg bg-white/10 border border-white/20 backdrop-blur-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-white">Được tin dùng bởi hơn 500+ phòng khám</p>
+<p class="text-xs text-white/60">Tiêu chuẩn bảo mật dữ liệu y tế quốc tế</p>
+</div>
+</div>
+</div>
+<!-- Abstract medical decoration -->
+<div class="absolute -right-20 -bottom-20 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[400px]">health_and_safety</span>
+</div>
+</div>
+<!-- Form Side -->
+<div class="p-8 lg:p-16 flex flex-col justify-center">
+<div class="max-w-[400px] mx-auto w-full">
+<!-- Mobile Logo (Hidden on Desktop) -->
+<div class="lg:hidden flex items-center gap-2 mb-8 text-primary">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+<span class="font-headline-sm text-headline-sm font-bold">ClinicFlow</span>
+</div>
+<div class="mb-10">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Chào mừng trở lại</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Vui lòng nhập thông tin để truy cập hệ thống</p>
+</div>
+<form class="space-y-6" onsubmit="event.preventDefault();">
+<!-- Email Field -->
+<div class="space-y-2">
+<label class="block font-label-md text-label-md text-on-surface" for="id_input">Email hoặc Số điện thoại</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">person</span>
+<input class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md transition-all" id="id_input" placeholder="admin@clinicflow.vn" type="text"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="block font-label-md text-label-md text-on-surface" for="password_input">Mật khẩu</label>
+<a class="font-label-md text-label-md text-primary hover:underline transition-all" href="#">Quên mật khẩu?</a>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">lock</span>
+<input class="w-full pl-10 pr-12 py-3 bg-surface border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md transition-all" id="password_input" placeholder="••••••••" type="password"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+<!-- Login Button -->
+<button class="w-full bg-primary-container text-white py-3.5 rounded-lg font-label-md text-[14px] hover:bg-primary transition-colors flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] transition-transform">
+                            Đăng nhập
+                            <span class="material-symbols-outlined text-[18px]">login</span>
+</button>
+<div class="relative my-8">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant"></div>
+</div>
+<div class="relative flex justify-center text-xs uppercase">
+<span class="bg-surface-container-lowest px-4 text-on-surface-variant font-medium">Hoặc đăng nhập bằng</span>
+</div>
+</div>
+<!-- Alternative Login Methods -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 py-2.5 px-4 border border-outline-variant rounded-lg font-label-md text-on-surface hover:bg-surface-container transition-all">
+<img alt="Google Logo" class="w-4 h-4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqJWvevcd0o4-H8dbBy94GBgRdKLdmcGRMUPNWMsRX8lN2kz89rlqEtqGITvxnKDg2oChF2Q8UrMG2ybK2we2efVJkrNx91GE-HkfHxZPjjF5BG1UTUM53Tl05ArXiHsXscUKhBIwwh8XJBn7OXaznSHFXDbXxCKDaKaN8wReGfVCoeJ8ppKcJmkGegOfcwfklkEDYkKzQ2YWjr_JvivR-LhBG9RBT2o9etV75bg1dFtceTF5C2Yld6zgIOZNsHnSTVzFKrlTOcgRK"/>
+                                Google
+                            </button>
+<button class="flex items-center justify-center gap-3 py-2.5 px-4 border border-outline-variant rounded-lg font-label-md text-on-surface hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">id_card</span>
+                                Smart Card
+                            </button>
+</div>
+</form>
+<div class="mt-12 text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                            Chưa có tài khoản? 
+                            <a class="text-primary font-bold hover:underline" href="#">Liên hệ quản trị viên</a>
+</p>
+</div>
+</div>
+<!-- Footer within form side -->
+<div class="mt-auto pt-8 border-t border-outline-variant/30 flex justify-between items-center text-[11px] text-outline">
+<span>© 2024 ClinicFlow MS. Version 2.4.0</span>
+<div class="flex gap-4">
+<a class="hover:text-primary transition-colors" href="#">Điều khoản</a>
+<a class="hover:text-primary transition-colors" href="#">Bảo mật</a>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions for input focus effects or password visibility toggle could be added here
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('ring-2', 'ring-primary/20');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('ring-2', 'ring-primary/20');
+            });
+        });
+    </script>
+</body></html>

@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import router from './router'
 
 // Vuetify
 import 'vuetify/styles'
@@ -11,17 +12,22 @@ import '@mdi/font/css/materialdesignicons.css'
 // Pinia
 import { createPinia } from 'pinia'
 
-const customDarkTheme = {
-  dark: true,
+const customLightTheme = {
+  dark: false,
   colors: {
-    background: '#0F172A', // Slate 900
-    surface: '#1E293B',    // Slate 800
-    primary: '#38BDF8',    // Sky 400
-    secondary: '#818CF8',  // Indigo 400
-    success: '#34D399',    // Emerald 400
-    warning: '#FBBF24',    // Amber 400
-    error: '#F87171',      // Red 400
-    info: '#60A5FA',       // Blue 400
+    background: '#F4F5F7',
+    surface: '#FFFFFF',
+    primary: '#003D9B',
+    'primary-darken-1': '#002C70',
+    secondary: '#006C47',
+    'secondary-darken-1': '#004F34',
+    success: '#006C47',
+    'success-darken-1': '#004F34',
+    warning: '#851800',
+    'warning-darken-1': '#611100',
+    error: '#BA1A1A',
+    'error-darken-1': '#8A1313',
+    info: '#0052CC',
   }
 }
 
@@ -29,14 +35,15 @@ const vuetify = createVuetify({
   components,
   directives,
   theme: {
-    defaultTheme: 'customDarkTheme',
+    defaultTheme: 'customLightTheme',
     themes: {
-      customDarkTheme
+      customLightTheme
     }
   }
 })
 
 const app = createApp(App)
 app.use(createPinia())
+app.use(router)
 app.use(vuetify)
 app.mount('#app')

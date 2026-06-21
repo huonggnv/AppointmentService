@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClinicFlow - Cổng Thông Tin Bệnh Nhân</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#b02300",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffdad2",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb4a3",
+                        "primary": "#003d9b",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "on-primary": "#ffffff",
+                        "outline": "#737685",
+                        "error": "#ba1a1a",
+                        "surface": "#f8f9fb",
+                        "on-primary-fixed": "#001848",
+                        "secondary-fixed-dim": "#65dca4",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#3d0600",
+                        "on-secondary-container": "#00734c",
+                        "on-secondary-fixed-variant": "#005235",
+                        "on-primary-container": "#c4d2ff",
+                        "primary-fixed": "#dae2ff",
+                        "inverse-on-surface": "#f0f1f3",
+                        "secondary": "#006c47",
+                        "surface-dim": "#d9dadc",
+                        "surface-container": "#edeef0",
+                        "inverse-surface": "#2e3132",
+                        "secondary-fixed": "#82f9be",
+                        "on-surface-variant": "#434654",
+                        "tertiary": "#851800",
+                        "on-background": "#191c1e",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-container": "#82f9be",
+                        "on-tertiary-fixed-variant": "#8b1a00",
+                        "outline-variant": "#c3c6d6",
+                        "background": "#f8f9fb",
+                        "surface-bright": "#f8f9fb",
+                        "on-tertiary-container": "#ffc6b9",
+                        "surface-container-high": "#e7e8ea",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f3f4f6",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "primary-container": "#0052cc",
+                        "on-secondary-fixed": "#002113",
+                        "surface-container-highest": "#e1e2e4",
+                        "surface-variant": "#e1e2e4",
+                        "surface-tint": "#0c56d0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "sidebar-width": "260px",
+                        "sidebar-collapsed": "72px",
+                        "unit": "4px",
+                        "container-padding": "24px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "mono-data": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "mono-data": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F4F5F7; /* Level 0 Background per Style Guidance */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .card-shadow {
+            border: 1px solid #DFE1E6;
+        }
+        .sidebar-active {
+            border-left: 3px solid #0052CC;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #DFE1E6;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-container-padding h-16 fixed top-0 z-50 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<span class="text-headline-sm font-headline-sm font-bold text-primary">ClinicFlow</span>
+</div>
+<div class="hidden md:flex flex-1 max-w-xl mx-8 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:outline-none focus:border-primary font-body-md text-body-md" placeholder="Tìm kiếm bác sĩ, chuyên khoa..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-primary/5 transition-colors cursor-pointer active:opacity-80 rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 hover:bg-primary/5 transition-colors cursor-pointer active:opacity-80 rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<div class="flex items-center gap-2 ml-2 pl-4 border-l border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface hidden sm:block">Nguyễn Văn An</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-16 z-40 bg-surface-container-lowest border-r border-outline-variant w-sidebar-width hidden md:flex">
+<nav class="flex-1 mt-6">
+<a class="flex items-center gap-3 px-6 py-4 w-full text-primary border-l-4 border-primary bg-primary/5 font-bold transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 w-full text-on-surface-variant font-medium hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">person_search</span>
+<span class="font-label-md text-label-md">Tìm bác sĩ</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 w-full text-on-surface-variant font-medium hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span class="font-label-md text-label-md">Lịch hẹn</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 w-full text-on-surface-variant font-medium hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-md text-label-md">Hồ sơ y tế</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 w-full text-on-surface-variant font-medium hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">medication</span>
+<span class="font-label-md text-label-md">Đơn thuốc</span>
+</a>
+</nav>
+<div class="p-6 border-t border-outline-variant">
+<a class="flex items-center gap-3 py-3 w-full text-on-surface-variant font-medium hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-label-md text-label-md">Trợ giúp</span>
+</a>
+<a class="flex items-center gap-3 py-3 w-full text-on-surface-variant font-medium hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined text-error">logout</span>
+<span class="font-label-md text-label-md text-error">Đăng xuất</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-sidebar-width pt-20 p-6 min-h-screen">
+<div class="max-w-7xl mx-auto space-y-8">
+<!-- Hero & Search (Bento Section) -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 bg-primary-container p-8 rounded-xl relative overflow-hidden flex flex-col justify-center min-h-[240px]">
+<div class="relative z-10">
+<h1 class="font-headline-lg text-headline-lg text-on-primary-container mb-2">Chào buổi sáng, Văn An</h1>
+<p class="font-body-lg text-body-lg text-on-primary-container opacity-90 max-w-md">Hãy bắt đầu chăm sóc sức khỏe của bạn ngay hôm nay với đội ngũ bác sĩ hàng đầu.</p>
+<button class="mt-6 px-6 py-3 bg-on-primary-container text-primary font-bold rounded-lg hover:opacity-90 transition-opacity">Khám phá ngay</button>
+</div>
+<div class="absolute right-0 top-0 h-full w-1/3 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-[200px] leading-none" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant flex flex-col justify-between">
+<div>
+<h3 class="font-headline-sm text-headline-sm mb-1">Chỉ số sức khỏe</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">Cập nhật lần cuối: Hôm nay, 08:30</p>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center p-3 bg-surface-container-low rounded-lg">
+<span class="font-label-md text-label-md flex items-center gap-2"><span class="material-symbols-outlined text-error text-sm">favorite</span> Nhịp tim</span>
+<span class="font-mono-data text-mono-data text-primary">72 bpm</span>
+</div>
+<div class="flex justify-between items-center p-3 bg-surface-container-low rounded-lg">
+<span class="font-label-md text-label-md flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-sm">blood_pressure</span> Huyết áp</span>
+<span class="font-mono-data text-mono-data text-primary">120/80</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Appointments & Prescriptions (Asymmetric Grid) -->
+<section class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+<!-- My Appointments (Left Column) -->
+<div class="xl:col-span-8 space-y-6">
+<div class="flex justify-between items-end">
+<h2 class="font-headline-md text-headline-md">Lịch hẹn của tôi</h2>
+<a class="font-label-md text-label-md text-primary hover:underline" href="#">Xem tất cả</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Appointment Card -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant hover:border-primary transition-colors group cursor-pointer relative">
+<div class="flex gap-4 items-start mb-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A professional portrait of a senior male doctor with grey hair and glasses, wearing a white clinical coat and a blue stethoscope around his neck. The lighting is soft and studio-quality, emphasizing a professional and trustworthy healthcare atmosphere. The background is a clean, minimalist medical office with subtle blue accents, aligning with a corporate medical UI design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6nkVw6ms3ANr4WCdGaU2VpaH0WJpMyEwxYvwZ5mYQQSpMeQk1eVzM7zKP2GMicMBXrD-ParGERGi5iEWPMxbW2VQsJoaKSfGtADNVrXU_QXJoabTPn6Y9Vh1A3HX9oiyKA6j_4zZMtr_hklZ0FuoaqgKYZDciTKuw7FAuITgcl-t1ai6lzWrYV9rWPgm1KI2Cb_I82j7zKCZZ-z5Sa23qesOcYK4YveIwOeL5jMNLt6s5_0I06tnYmduepptzlQClJ2edkXO97hwv"/>
+</div>
+<div>
+<h4 class="font-body-md font-bold text-on-surface">BS. Trần Mạnh Hùng</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Khoa Tim mạch</p>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-t border-outline-variant/30">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm">calendar_month</span>
+<span class="font-label-md text-label-md">15 Tháng 10</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span class="font-label-md text-label-md">09:00 - 09:30</span>
+</div>
+</div>
+<div class="mt-2 px-3 py-1 bg-secondary/10 text-secondary rounded w-fit font-label-md text-[10px]">ĐÃ XÁC NHẬN</div>
+</div>
+<!-- Appointment Card 2 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant hover:border-primary transition-colors group cursor-pointer">
+<div class="flex gap-4 items-start mb-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A portrait of a young female doctor with dark hair tied back, wearing a white medical lab coat and a minimalist silver necklace. She has a friendly, professional expression. The background is a soft-focus medical clinic with clean white walls and professional blue tonal accents, reflecting a high-end healthcare portal aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHqk4b2tfn3bik8TFw6CHWHKB2b8qbwn-pv5MSQ_TzzzG_UTG0L-CTLxj4La3XZH2QTCdiT7O12Zs-GHcHzlWgECojApyiQi6W8uxmI5wXCV-Sf8-G8iX04dh_1gccGNtFtryMQgkDe1PNC0jOsJ7kRmS7KG5hIIfMZ7E6v5iV5Bskq5kgfpZg0hAPlgRo1TTFkpzq41_o3WUbjFtelirVMjv_8MEf2EV0sAP5uojXG8CKYSlnZGvkn9UAHSAbyTAjxowlVrOb_lm5"/>
+</div>
+<div>
+<h4 class="font-body-md font-bold text-on-surface">BS. Lê Thị Mai</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Khoa Nội tiết</p>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-t border-outline-variant/30">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm">calendar_month</span>
+<span class="font-label-md text-label-md">22 Tháng 10</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span class="font-label-md text-label-md">14:00 - 14:30</span>
+</div>
+</div>
+<div class="mt-2 px-3 py-1 bg-tertiary/10 text-tertiary rounded w-fit font-label-md text-[10px]">CHỜ XÁC NHẬN</div>
+</div>
+</div>
+</div>
+<!-- Prescription History (Right Column) -->
+<div class="xl:col-span-4 space-y-6">
+<h2 class="font-headline-md text-headline-md">Đơn thuốc gần đây</h2>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Lịch sử dùng thuốc</p>
+</div>
+<div class="divide-y divide-outline-variant/30 max-h-[300px] overflow-y-auto custom-scrollbar">
+<div class="p-4 hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-1">
+<span class="font-body-md font-bold">Amoxicillin 500mg</span>
+<span class="text-[10px] text-on-surface-variant font-mono-data">01/10/2023</span>
+</div>
+<p class="text-body-sm text-body-sm text-on-surface-variant italic">Uống 1 viên sau ăn, 3 lần/ngày</p>
+</div>
+<div class="p-4 hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-1">
+<span class="font-body-md font-bold">Paracetamol 500mg</span>
+<span class="text-[10px] text-on-surface-variant font-mono-data">28/09/2023</span>
+</div>
+<p class="text-body-sm text-body-sm text-on-surface-variant italic">Khi sốt trên 38.5 độ</p>
+</div>
+<div class="p-4 hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-1">
+<span class="font-body-md font-bold">Vitamin C 1000mg</span>
+<span class="text-[10px] text-on-surface-variant font-mono-data">15/09/2023</span>
+</div>
+<p class="text-body-sm text-body-sm text-on-surface-variant italic">Uống sáng sớm sau ăn</p>
+</div>
+</div>
+<button class="w-full py-3 text-primary font-bold text-label-md border-t border-outline-variant hover:bg-primary/5 transition-colors">
+                            Tải hồ sơ PDF
+                        </button>
+</div>
+</div>
+</section>
+<!-- Doctor Marketplace (Grid) -->
+<section class="space-y-6">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+<div>
+<h2 class="font-headline-md text-headline-md">Tìm bác sĩ chuyên khoa</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Đặt lịch hẹn nhanh chóng với các chuyên gia hàng đầu.</p>
+</div>
+<div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
+<button class="px-4 py-2 bg-primary text-on-primary rounded-full font-label-md text-label-md whitespace-nowrap">Tất cả</button>
+<button class="px-4 py-2 bg-surface-container-highest text-on-surface-variant rounded-full font-label-md text-label-md whitespace-nowrap">Tim mạch</button>
+<button class="px-4 py-2 bg-surface-container-highest text-on-surface-variant rounded-full font-label-md text-label-md whitespace-nowrap">Da liễu</button>
+<button class="px-4 py-2 bg-surface-container-highest text-on-surface-variant rounded-full font-label-md text-label-md whitespace-nowrap">Nhi khoa</button>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Doctor Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden group hover:shadow-lg transition-all duration-300">
+<div class="h-48 relative">
+<img class="w-full h-full object-cover" data-alt="A professional male doctor in his 40s with a warm smile, wearing a white lab coat over a blue shirt. He stands in a brightly lit, modern hospital corridor with soft architectural lines. The image is captured with a shallow depth of field, giving it a high-end corporate photography feel. The color palette consists of whites, medical blues, and neutral grays." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD1k3VXnr0Hj2mlwFjvH_AFGPzeGiL304_O37RWGGITDR2lZQCUq6f_UnnSPF4zLicDheKPVHOPldQibwQ777SthsLxFysPovEDPR1poi7eaf70IqyPi-KYJVX1C5MS6ONtMk5mOoJzYfgcn55Js3oJbne_lwexoxUW60ZYTKrYFXyQNgfB2foWmLnF-y4YdNUn4B9WLldIiIxcPKaTG0j70plZzMqFYeZzYcs70rXKyZXnwjzd9eYSaA06MSMKkVhPErkr2eXvibP"/>
+<div class="absolute top-3 right-3 px-2 py-1 bg-secondary-container text-on-secondary-container rounded font-bold text-[10px] flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span> 4.9
+                            </div>
+</div>
+<div class="p-5">
+<h3 class="font-body-md font-bold text-on-surface mb-0.5">BS. Nguyễn Hoàng Nam</h3>
+<p class="font-label-md text-label-md text-primary mb-4">Chuyên khoa Mắt</p>
+<div class="space-y-3 mb-5">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="font-body-sm text-body-sm">Trống: <span class="text-on-surface font-medium">Sáng mai, 08:00</span></span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span class="font-body-sm text-body-sm">Phí khám: <span class="text-on-surface font-medium">300.000đ</span></span>
+</div>
+</div>
+<button class="w-full py-2.5 bg-primary text-white rounded-lg font-bold text-label-md hover:bg-primary-container transition-colors" onclick="toggleBookingModal()">Đặt lịch ngay</button>
+</div>
+</div>
+<!-- Repeat Doctor Cards (Doctor 2) -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden group hover:shadow-lg transition-all duration-300">
+<div class="h-48 relative">
+<img class="w-full h-full object-cover" data-alt="A portrait of a confident female pediatrician with glasses, holding a tablet and smiling kindly. She is wearing a white medical coat. The background is a modern pediatric clinic decorated with subtle, tasteful colorful wall art, maintaining a clean and professional look with high-key lighting. The overall mood is approachable, caring, and expertly professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPbWkEzfYIV4onuB_dCOUH-Cli62bc5SHWLrcMJ6gBtnVYVQX4sHAhpwTMxJIdut0dZlUXDPwEmwZq1NZxgCtyo7MNOSThhvB9A-IOxXS2RNLBbIs3E7mFtN8PfSbfHpy5_tE13XF5SJ9DHl82HSAPoSAH7zeOFccntwlXhz2t74D9_zUej5MR5uQTNGeKmRCGn8SrZNSvgAAdF9_XkoYUfGxZkq3XxLXfH58st5SQgSTLBXzYvGCQm9g566YrHVJJPDeWXauy_IQt"/>
+<div class="absolute top-3 right-3 px-2 py-1 bg-secondary-container text-on-secondary-container rounded font-bold text-[10px] flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span> 5.0
+                            </div>
+</div>
+<div class="p-5">
+<h3 class="font-body-md font-bold text-on-surface mb-0.5">BS. Đặng Thu Thảo</h3>
+<p class="font-label-md text-label-md text-primary mb-4">Nhi khoa</p>
+<div class="space-y-3 mb-5">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="font-body-sm text-body-sm">Trống: <span class="text-on-surface font-medium">Hôm nay, 15:30</span></span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span class="font-body-sm text-body-sm">Phí khám: <span class="text-on-surface font-medium">500.000đ</span></span>
+</div>
+</div>
+<button class="w-full py-2.5 bg-primary text-white rounded-lg font-bold text-label-md hover:bg-primary-container transition-colors">Đặt lịch ngay</button>
+</div>
+</div>
+<!-- Repeat Doctor Cards (Doctor 3) -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden group hover:shadow-lg transition-all duration-300">
+<div class="h-48 relative">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male dermatologist in his late 30s, dressed in a sleek, minimalist medical uniform. He has a composed and expert expression. The clinic background features soft, glowing panels and a clean white-and-steel aesthetic, emphasizing precision and modern technology in skincare and healthcare. Corporate light-mode style with a focus on trust and cleanliness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmWZOHFEVO94DuURApr6W-rbjPLBaW1l4W5UB8kM6QzDcw6hpAVD10tcB6FiNWm_n0tsdjCTNyDoNVCOcarh9SxTAi1FgRGZw9WHpdGWxkk0pop6iyWqDG6ZoZ67Avg58me-b9SzAO-bfJpCGPzRUXfT1CEdgUPmywEt4zS4ke7rsyGq6_oyPFOtjXisBylc_kekC69L2QA4Hf5FKh4g4szgyuRNzlVglPnLnfHwmAn4x_WPehCbjGoRHJJztnXvO_W9t7Rn4r6Wfb"/>
+<div class="absolute top-3 right-3 px-2 py-1 bg-secondary-container text-on-secondary-container rounded font-bold text-[10px] flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span> 4.8
+                            </div>
+</div>
+<div class="p-5">
+<h3 class="font-body-md font-bold text-on-surface mb-0.5">BS. Vũ Đức Anh</h3>
+<p class="font-label-md text-label-md text-primary mb-4">Da liễu</p>
+<div class="space-y-3 mb-5">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="font-body-sm text-body-sm">Trống: <span class="text-on-surface font-medium">Thứ 4, 10:00</span></span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span class="font-body-sm text-body-sm">Phí khám: <span class="text-on-surface font-medium">450.000đ</span></span>
+</div>
+</div>
+<button class="w-full py-2.5 bg-primary text-white rounded-lg font-bold text-label-md hover:bg-primary-container transition-colors">Đặt lịch ngay</button>
+</div>
+</div>
+<!-- Repeat Doctor Cards (Doctor 4) -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden group hover:shadow-lg transition-all duration-300">
+<div class="h-48 relative">
+<img class="w-full h-full object-cover" data-alt="A professional middle-aged female neurologist with an empathetic expression, wearing a white coat and a navy blue shirt. Behind her is a modern, high-tech diagnostic room with medical monitors showing neural imaging in soft blue and white colors. The photography is clean, bright, and professional, characteristic of a high-end health tech interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwRQPsmXZUs22_zyBgCJprcclUx8rbXMCcYerrHrg5YCWnCrwiFh4AlgOW9cw1ro4Cp64B7Wk1DDs0NAXx41llLI1AWABXlUZkaGmH2EOlIm9yMHULiksE9huSavGBthHF6WTMbJO1dg9cIBXj6hg4PsdHtIdoGWqb63xXA7LcKswq6miNy0-cnmXrmZpe7QAZPMDQWcpAPMtzdjzhWPkWDnM5A-Am-2XNYTZje_BOZgyp9bZFpEF-n2LICkhadH3Auj3Jhy_QjvwY"/>
+<div class="absolute top-3 right-3 px-2 py-1 bg-secondary-container text-on-secondary-container rounded font-bold text-[10px] flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span> 4.9
+                            </div>
+</div>
+<div class="p-5">
+<h3 class="font-body-md font-bold text-on-surface mb-0.5">BS. Phạm Minh Trang</h3>
+<p class="font-label-md text-label-md text-primary mb-4">Thần kinh</p>
+<div class="space-y-3 mb-5">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="font-body-sm text-body-sm">Trống: <span class="text-on-surface font-medium">Hôm nay, 16:00</span></span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span class="font-body-sm text-body-sm">Phí khám: <span class="text-on-surface font-medium">600.000đ</span></span>
+</div>
+</div>
+<button class="w-full py-2.5 bg-primary text-white rounded-lg font-bold text-label-md hover:bg-primary-container transition-colors">Đặt lịch ngay</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Booking Modal (The "Book Now" Flow) -->
+<div class="fixed inset-0 z-[100] hidden" id="booking-modal">
+<div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm transition-opacity"></div>
+<div class="absolute inset-0 flex items-center justify-center p-4">
+<div class="bg-surface-container-lowest w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[921px]">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<div>
+<h2 class="font-headline-sm text-headline-sm">Đặt lịch hẹn</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Vui lòng chọn thời gian khám phù hợp</p>
+</div>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors" onclick="toggleBookingModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+<!-- Date Picker -->
+<div class="space-y-4">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Chọn ngày khám</h3>
+<div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+<button class="flex flex-col items-center justify-center min-w-[70px] p-3 rounded-xl border border-primary bg-primary/5 text-primary">
+<span class="font-label-md text-label-md">T2</span>
+<span class="font-headline-sm text-headline-sm font-bold">16</span>
+<span class="text-[10px] uppercase">Th 10</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[70px] p-3 rounded-xl border border-outline-variant hover:border-primary transition-all">
+<span class="font-label-md text-label-md text-on-surface-variant">T3</span>
+<span class="font-headline-sm text-headline-sm font-bold">17</span>
+<span class="text-[10px] uppercase text-on-surface-variant">Th 10</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[70px] p-3 rounded-xl border border-outline-variant hover:border-primary transition-all">
+<span class="font-label-md text-label-md text-on-surface-variant">T4</span>
+<span class="font-headline-sm text-headline-sm font-bold">18</span>
+<span class="text-[10px] uppercase text-on-surface-variant">Th 10</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[70px] p-3 rounded-xl border border-outline-variant hover:border-primary transition-all">
+<span class="font-label-md text-label-md text-on-surface-variant">T5</span>
+<span class="font-headline-sm text-headline-sm font-bold">19</span>
+<span class="text-[10px] uppercase text-on-surface-variant">Th 10</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[70px] p-3 rounded-xl border border-outline-variant hover:border-primary transition-all">
+<span class="font-label-md text-label-md text-on-surface-variant">T6</span>
+<span class="font-headline-sm text-headline-sm font-bold">20</span>
+<span class="text-[10px] uppercase text-on-surface-variant">Th 10</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[70px] p-3 rounded-xl border border-outline-variant hover:border-primary transition-all opacity-50 cursor-not-allowed">
+<span class="font-label-md text-label-md text-on-surface-variant">T7</span>
+<span class="font-headline-sm text-headline-sm font-bold">21</span>
+<span class="text-[10px] uppercase text-on-surface-variant">Th 10</span>
+</button>
+</div>
+</div>
+<!-- Time Slots -->
+<div class="space-y-4">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Chọn khung giờ</h3>
+<div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+<button class="py-2.5 px-4 border border-outline-variant rounded-lg font-body-md text-body-md hover:border-primary hover:bg-primary/5 transition-all text-center">08:00</button>
+<button class="py-2.5 px-4 border border-outline-variant rounded-lg font-body-md text-body-md hover:border-primary hover:bg-primary/5 transition-all text-center">08:30</button>
+<button class="py-2.5 px-4 border border-primary bg-primary text-white rounded-lg font-body-md text-body-md text-center">09:00</button>
+<button class="py-2.5 px-4 border border-outline-variant rounded-lg font-body-md text-body-md hover:border-primary hover:bg-primary/5 transition-all text-center">09:30</button>
+<button class="py-2.5 px-4 border border-outline-variant rounded-lg font-body-md text-body-md hover:border-primary hover:bg-primary/5 transition-all text-center">10:00</button>
+<button class="py-2.5 px-4 border border-outline-variant rounded-lg font-body-md text-body-md hover:border-primary hover:bg-primary/5 transition-all text-center">10:30</button>
+<button class="py-2.5 px-4 border border-outline-variant rounded-lg font-body-md text-body-md opacity-30 cursor-not-allowed text-center line-through">11:00</button>
+<button class="py-2.5 px-4 border border-outline-variant rounded-lg font-body-md text-body-md hover:border-primary hover:bg-primary/5 transition-all text-center">11:30</button>
+</div>
+</div>
+<!-- Consultation Type -->
+<div class="space-y-4">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Hình thức khám</h3>
+<div class="flex gap-4">
+<label class="flex-1 cursor-pointer">
+<input checked="" class="hidden peer" name="type" type="radio"/>
+<div class="p-4 border border-outline-variant rounded-xl peer-checked:border-primary peer-checked:bg-primary/5 transition-all flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary mb-2">person</span>
+<span class="font-body-md font-bold">Khám trực tiếp</span>
+<span class="text-body-sm text-on-surface-variant">Tại bệnh viện</span>
+</div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input class="hidden peer" name="type" type="radio"/>
+<div class="p-4 border border-outline-variant rounded-xl peer-checked:border-primary peer-checked:bg-primary/5 transition-all flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary mb-2">videocam</span>
+<span class="font-body-md font-bold">Khám trực tuyến</span>
+<span class="text-body-sm text-on-surface-variant">Video call</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+<div class="p-6 border-t border-outline-variant bg-surface-container-low flex items-center justify-between">
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Tổng chi phí dự kiến</p>
+<p class="font-headline-sm text-headline-sm text-primary font-bold">300.000đ</p>
+</div>
+<button class="px-10 py-3 bg-primary text-white rounded-lg font-bold text-body-md hover:bg-primary-container transition-all shadow-lg active:scale-[0.98]">Xác nhận đặt lịch</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Mobile Bottom NavBar (Suppressed on Desktop) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface border-t border-outline-variant flex items-center justify-around px-2 z-50">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-bold">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">person_search</span>
+<span class="text-[10px]">Tìm bác sĩ</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span class="text-[10px]">Lịch hẹn</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-[10px]">Hồ sơ</span>
+</a>
+</nav>
+<script>
+        function toggleBookingModal() {
+            const modal = document.getElementById('booking-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('booking-modal');
+                if (!modal.classList.contains('hidden')) toggleBookingModal();
+            }
+        });
+    </script>
+</body></html>
