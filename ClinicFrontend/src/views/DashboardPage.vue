@@ -12,8 +12,8 @@
       width="260"
     >
       <!-- Logo & Branding -->
-      <div class="sidebar-logo d-flex align-center pa-4" style="height: 64px; border-bottom: 1px solid rgba(0,0,0,0.08);">
-        <v-icon icon="mdi-heart-pulse" color="primary" size="28" class="flex-shrink-0" />
+      <div class="sidebar-logo d-flex align-center pa-4" style="height: 64px; border-bottom: 1px solid var(--border-color);">
+        <i class="fa-solid fa-heart-pulse text-primary flex-shrink-0" style="font-size: 24px;"></i>
         <Transition name="fade">
           <div v-if="!sidebarRail" class="ml-3">
             <div class="text-subtitle-1 font-weight-black text-primary" style="line-height: 1.1;">ClinicFlow</div>
@@ -509,14 +509,38 @@
                     />
                     
                     <!-- Choose specific time slot inside shift hours -->
-                    <v-text-field
-                      v-model="bookingForm.timeSlot"
-                      label="Khung giờ muốn khám (Giờ cụ thể, vd: 08:30:00)"
-                      variant="outlined"
-                      placeholder="hh:mm:ss"
-                      class="mb-3"
-                      required
-                    />
+                    <div class="mb-3">
+                      <div class="text-subtitle-2 mb-2 font-weight-bold text-grey-darken-3">Chọn khung giờ khám cụ thể:</div>
+                      
+                      <div v-if="bookingForm.scheduleId">
+                        <v-chip-group
+                          v-model="bookingForm.timeSlot"
+                          column
+                          selected-class="bg-primary text-white"
+                        >
+                          <v-chip
+                            v-for="slot in activeTimeSlotsList"
+                            :key="slot.time"
+                            :value="slot.time"
+                            :disabled="slot.isBooked"
+                            :color="slot.isBooked ? 'error' : (bookingForm.timeSlot === slot.time ? 'primary' : 'default')"
+                            variant="elevated"
+                            class="ma-1 font-weight-bold"
+                          >
+                            {{ slot.displayTime }}
+                            <span v-if="slot.isBooked" class="text-caption ml-1 font-weight-regular">(Đã đặt)</span>
+                          </v-chip>
+                        </v-chip-group>
+                        
+                        <div v-if="!bookingForm.timeSlot" class="text-caption text-red-darken-2 mt-1 font-weight-bold">
+                          * Vui lòng chọn một khung giờ khám còn trống ở trên.
+                        </div>
+                      </div>
+                      
+                      <div v-else class="text-caption text-grey-darken-1 italic">
+                        * Vui lòng chọn một ca khám trống khả dụng ở bên trái để hiển thị danh sách giờ khám.
+                      </div>
+                    </div>
 
                     <v-textarea
                       v-model="bookingForm.notes"
@@ -532,7 +556,7 @@
                       block
                       size="large"
                       class="font-weight-bold"
-                      :disabled="!bookingForm.doctorId || !bookingForm.scheduleId || loading"
+                      :disabled="!bookingForm.doctorId || !bookingForm.scheduleId || !bookingForm.timeSlot || loading"
                       :loading="loading"
                     >
                       Đăng Ký Đặt Lịch Khám
@@ -2002,6 +2026,7 @@ export default {
     const specialties = ref([])
     const selectedSpecialty = ref(null)
     const availableSchedules = ref([])
+    const bookedSlots = ref([])
     const pendingAppointments = ref([])
     const recentTicket = ref(null)
 
@@ -2182,7 +2207,9 @@ export default {
     const selectDoctor = async (doc) => {
       bookingForm.value.doctorId = doc.id
       bookingForm.value.scheduleId = ''
+      bookingForm.value.timeSlot = ''
       availableSchedules.value = []
+      bookedSlots.value = []
       
       if (isMockMode.value) {
         // Tự sinh lịch làm việc 3 ngày tới cho bác sĩ được chọn ở chế độ giả lập
@@ -2229,10 +2256,74 @@ export default {
       }
     }
 
-    const selectSchedule = (sch) => {
+    const generateTimeSlots = (startTime, endTime) => {
+      if (!startTime || !endTime) return []
+      const slots = []
+      const parseTimeToMinutes = (timeStr) => {
+        const parts = timeStr.split(':')
+        const hh = parseInt(parts[0], 10) || 0
+        const mm = parseInt(parts[1], 10) || 0
+        return hh * 60 + mm
+      }
+      const formatMinutesToTime = (totalMinutes) => {
+        const hh = Math.floor(totalMinutes / 60)
+        const mm = totalMinutes % 60
+        const pad = (n) => String(n).padStart(2, '0')
+        return `${pad(hh)}:${pad(mm)}:00`
+      }
+      let current = parseTimeToMinutes(startTime)
+      const end = parseTimeToMinutes(endTime)
+      while (current <= end - 30) {
+        slots.push(formatMinutesToTime(current))
+        current += 30
+      }
+      if (slots.length === 0) {
+        slots.push(startTime)
+      }
+      return slots
+    }
+
+    const fetchBookedSlots = async (doctorId, date) => {
+      if (isMockMode.value) {
+        bookedSlots.value = ['09:00:00', '14:30:00']
+        return
+      }
+      if (!doctorId || !date) {
+        bookedSlots.value = []
+        return
+      }
+      try {
+        const dateStr = date.split('T')[0]
+        const url = `${apiUrl.value}/appointments/booked-slots?doctorId=${doctorId}&date=${dateStr}`
+        const res = await fetch(url)
+        if (!res.ok) throw new Error('Không thể tải các giờ đã đặt')
+        const data = await res.json()
+        bookedSlots.value = data
+      } catch (err) {
+        console.error('Lỗi khi tải các slot đã đặt:', err)
+        bookedSlots.value = []
+      }
+    }
+
+    const activeTimeSlotsList = computed(() => {
+      const sch = availableSchedules.value.find(s => s.id === bookingForm.value.scheduleId)
+      if (!sch) return []
+      const slots = generateTimeSlots(sch.startTime, sch.endTime)
+      return slots.map(slot => {
+        const isBooked = bookedSlots.value.includes(slot)
+        return {
+          time: slot,
+          isBooked: isBooked,
+          displayTime: slot.substring(0, 5)
+        }
+      })
+    })
+
+    const selectSchedule = async (sch) => {
       bookingForm.value.scheduleId = sch.id
       bookingForm.value.appointmentDate = sch.date
-      bookingForm.value.timeSlot = sch.startTime
+      bookingForm.value.timeSlot = ''
+      await fetchBookedSlots(bookingForm.value.doctorId, sch.date)
     }
 
     // Book Appointment
@@ -2280,7 +2371,14 @@ export default {
           body: JSON.stringify(bookingForm.value)
         })
 
-        const data = await res.json()
+        const text = await res.text()
+        let data
+        try {
+          data = JSON.parse(text)
+        } catch (e) {
+          data = text
+        }
+
         if (!res.ok) {
           throw new Error(data || 'Đăng ký đặt lịch thất bại')
         }
@@ -2809,6 +2907,7 @@ export default {
         }
       }
       fetchPatientProfile(activeConsultation.value.patientPhone)
+      fetchDrugs() // Đồng bộ tồn kho thuốc thực tế từ Nhóm 6 để lấy số lượng chính xác khi kê đơn
       showAlert(`Bắt đầu ghi nhận bệnh án cho bệnh nhân: ${qItem.patientName}`, 'info')
     }
 
@@ -2900,29 +2999,173 @@ export default {
 
           showAlert('Khám bệnh hoàn tất! Đơn thuốc và Hóa đơn viện phí đã chuyển sang bộ phận Thu ngân.', 'success')
         } else {
-          // Gọi API Nhóm 4 (Medical Record) trực tiếp
-          const urlRecord = `${medicalApiUrl.value}/MedicalRecords`
-          const resRecord = await fetch(urlRecord, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${currentUser.value.token}`
-            },
-            body: JSON.stringify({
-              patientName: activeConsultation.value.patientName,
-              patientPhone: activeConsultation.value.patientPhone,
-              symptoms: activeConsultation.value.symptoms,
-              diagnosis: activeConsultation.value.diagnosis,
-              notes: activeConsultation.value.notes,
-              prescription: prescriptionData
-            })
-          })
+          const phone = activeConsultation.value.patientPhone
+          const urlCheckPatient = `${medicalApiUrl.value}/Patients/search?phone=${phone}`
+          let patientProfileId = null
 
-          if (!resRecord.ok) throw new Error('Không thể lưu bệnh án và kê đơn lên máy chủ Nhóm 4')
+          // 1. Kiểm tra xem bệnh nhân đã tồn tại ở Nhóm 4 chưa
+          try {
+            const resCheck = await fetch(urlCheckPatient, {
+              headers: { 'Authorization': `Bearer ${currentUser.value.token}` }
+            })
+            if (resCheck.ok) {
+              const patientData = await resCheck.json()
+              // Nhóm 4 /Patients/search có thể trả về mảng hoặc đối tượng đơn
+              if (Array.isArray(patientData) && patientData.length > 0) {
+                patientProfileId = patientData[0].id || patientData[0].patientProfileId
+              } else if (patientData && (patientData.id || patientData.patientProfileId)) {
+                patientProfileId = patientData.id || patientData.patientProfileId
+              }
+            } else {
+              // Thử endpoint dự phòng /Patients?phone=
+              const resCheckBackup = await fetch(`${medicalApiUrl.value}/Patients?phone=${phone}`, {
+                headers: { 'Authorization': `Bearer ${currentUser.value.token}` }
+              })
+              if (resCheckBackup.ok) {
+                const patientData = await resCheckBackup.json()
+                if (patientData && (patientData.id || patientData.patientProfileId)) {
+                  patientProfileId = patientData.id || patientData.patientProfileId
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Không thể kiểm tra sự tồn tại của bệnh nhân ở Nhóm 4, sẽ thử tự động tạo mới.', e)
+          }
+
+          // 2. Nếu bệnh nhân chưa có hồ sơ, tự động tạo hồ sơ bệnh nhân mới lên Nhóm 4
+          if (!patientProfileId) {
+            const urlCreatePatient = `${medicalApiUrl.value}/Patients`
+            try {
+              const resCreate = await fetch(urlCreatePatient, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${currentUser.value.token}`
+                },
+                body: JSON.stringify({
+                  fullName: activeConsultation.value.patientName,
+                  dateOfBirth: new Date(1990, 0, 1).toISOString(), // Mặc định 01/01/1990
+                  gender: 0, // Mặc định 0 (Male)
+                  phoneNumber: phone,
+                  address: 'Chưa cập nhật',
+                  medicalHistory: 'Không có tiền sử bệnh lý đặc biệt',
+                  allergies: 'Không'
+                })
+              })
+              if (!resCreate.ok) {
+                const errText = await resCreate.text()
+                throw new Error(`Tự động tạo hồ sơ bệnh nhân ở Nhóm 4 thất bại: ${errText || resCreate.statusText}`)
+              }
+              const newPatient = await resCreate.json()
+              patientProfileId = newPatient.id || newPatient.patientProfileId
+            } catch (createErr) {
+              throw new Error(`Lỗi khi tạo hồ sơ bệnh nhân mới tại Nhóm 4: ${createErr.message}`)
+            }
+          }
+
+          // 3. Tiến hành gọi API lưu bệnh án của Nhóm 4
+          const urlRecord = `${medicalApiUrl.value}/MedicalRecords`
+          let resRecord
+          let medicalRecordId = null
+          try {
+            resRecord = await fetch(urlRecord, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.value.token}`
+              },
+              body: JSON.stringify({
+                patientProfileId: patientProfileId,
+                doctorId: doctorPortal.value.doctorId,
+                appointmentId: activeConsultation.value.queueId,
+                examinationDate: new Date().toISOString(),
+                symptoms: activeConsultation.value.symptoms,
+                diagnosis: activeConsultation.value.diagnosis,
+                doctorNotes: activeConsultation.value.notes || 'Không có ghi chú'
+              })
+            })
+          } catch (fetchErr) {
+            throw new Error(`Không thể kết nối tới máy chủ Nhóm 4 tại địa chỉ ${urlRecord}. Chi tiết: ${fetchErr.message}`)
+          }
+
+          if (!resRecord.ok) {
+            let errorDetail = ''
+            try {
+              const errData = await resRecord.json()
+              errorDetail = errData.message || errData.error || JSON.stringify(errData)
+            } catch (_) {
+              try {
+                errorDetail = await resRecord.text()
+              } catch (_) {
+                errorDetail = `Mã lỗi HTTP: ${resRecord.status} ${resRecord.statusText}`
+              }
+            }
+            throw new Error(`Máy chủ Nhóm 4 từ chối lưu bệnh án. Chi tiết lỗi: ${errorDetail}`)
+          }
+
+          const createdRecord = await resRecord.json()
+          medicalRecordId = createdRecord.id || createdRecord.medicalRecordId
+
+          // 4. Nếu có kê đơn thuốc, gọi API Nhóm 4 để lưu đơn thuốc liên kết
+          if (prescriptionData.length > 0 && medicalRecordId) {
+            const urlPrescription = `${medicalApiUrl.value}/Prescriptions`
+            try {
+              const resPresc = await fetch(urlPrescription, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${currentUser.value.token}`
+                },
+                body: JSON.stringify({
+                  medicalRecordId: medicalRecordId,
+                  notes: 'Đơn thuốc điều trị phòng khám',
+                  details: prescriptionData.map(item => ({
+                    medicineId: String(item.drugId),
+                    quantity: parseInt(item.quantity),
+                    dosageInstruction: item.dosage
+                  }))
+                })
+              })
+              if (!resPresc.ok) {
+                const errPrescText = await resPresc.text()
+                console.warn('Không thể lưu đơn thuốc lên Nhóm 4:', errPrescText)
+              }
+            } catch (prescErr) {
+              console.warn('Lỗi kết nối khi lưu đơn thuốc lên Nhóm 4:', prescErr.message)
+            }
+          }
+
+          // 5. Gọi API fallback HTTP của Nhóm 6 để tạo hóa đơn và tự động trừ kho thuốc (giải quyết khi RabbitMQ chưa thông)
+          const urlConsumePrescription = `${authApiUrl.value}/Invoice/consume-prescription`
+          try {
+            const resConsume = await fetch(urlConsumePrescription, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.value.token}`
+              },
+              body: JSON.stringify({
+                patientName: activeConsultation.value.patientName,
+                consultationFee: consultFee,
+                items: prescriptionData.map(item => ({
+                  medicineId: parseInt(item.drugId),
+                  quantity: parseInt(item.quantity)
+                }))
+              })
+            })
+            if (!resConsume.ok) {
+              const errConsumeText = await resConsume.text()
+              console.warn('Tạo hóa đơn và trừ kho trực tiếp trên Nhóm 6 thất bại:', errConsumeText)
+            } else {
+              console.log('Tạo hóa đơn và trừ kho trực tiếp trên Nhóm 6 thành công.')
+            }
+          } catch (consumeErr) {
+            console.warn('Lỗi kết nối khi gọi API tạo hóa đơn Nhóm 6:', consumeErr.message)
+          }
 
           // Gọi API Nhóm 1 cập nhật hoàn thành khám
           await updateQueueStatus(activeConsultation.value.queueId, 4)
-          showAlert('Khám bệnh và kê đơn thuốc liên thông thành công!', 'success')
+          showAlert('Khám bệnh, ghi bệnh án và kê đơn thuốc liên thông thành công!', 'success')
         }
 
         // Reset form
@@ -2977,18 +3220,50 @@ export default {
       }
     }
 
-    const addNewDrug = () => {
-      const id = 'dr_' + Date.now()
-      drugs.value.push({
-        id,
-        name: drugForm.value.name,
-        activeIngredient: drugForm.value.activeIngredient,
-        unit: drugForm.value.unit,
-        price: drugForm.value.price,
-        stock: drugForm.value.stock
-      })
-      showAlert(`Đã thêm thuốc mới ${drugForm.value.name} vào kho thành công!`, 'success')
-      drugForm.value = { name: '', activeIngredient: '', unit: 'Viên', price: 0, stock: 0 }
+    const addNewDrug = async () => {
+      try {
+        loading.value = true
+        if (isMockMode.value) {
+          const id = 'dr_' + Date.now()
+          drugs.value.push({
+            id,
+            name: drugForm.value.name,
+            activeIngredient: drugForm.value.activeIngredient,
+            unit: drugForm.value.unit,
+            price: drugForm.value.price,
+            stock: drugForm.value.stock
+          })
+          showAlert(`Đã thêm thuốc mới ${drugForm.value.name} vào kho thành công (Giả lập)!`, 'success')
+          drugForm.value = { name: '', activeIngredient: '', unit: 'Viên', price: 0, stock: 0 }
+        } else {
+          const url = `${authApiUrl.value}/Medicine`
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentUser.value.token}`
+            },
+            body: JSON.stringify({
+              name: drugForm.value.name,
+              activeIngredient: drugForm.value.activeIngredient,
+              unit: drugForm.value.unit,
+              price: parseFloat(drugForm.value.price),
+              stockQuantity: parseInt(drugForm.value.stock)
+            })
+          })
+          if (!res.ok) {
+            const errText = await res.text()
+            throw new Error(`Không thể thêm thuốc mới vào kho Nhóm 6. Chi tiết: ${errText || res.statusText}`)
+          }
+          showAlert(`Đã thêm thuốc mới ${drugForm.value.name} vào kho Nhóm 6 thành công!`, 'success')
+          drugForm.value = { name: '', activeIngredient: '', unit: 'Viên', price: 0, stock: 0 }
+          await fetchDrugs() // Tải lại danh sách thuốc thực tế từ Nhóm 6
+        }
+      } catch (err) {
+        showAlert(err.message, 'error')
+      } finally {
+        loading.value = false
+      }
     }
 
     const addNewDoctor = async () => {
@@ -3392,6 +3667,28 @@ export default {
       }
     }
 
+    const fetchDrugs = async () => {
+      if (isMockMode.value) return
+      try {
+        const url = `${authApiUrl.value}/Medicine`
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${currentUser.value.token}` }
+        })
+        if (!res.ok) throw new Error('Không thể tải danh sách thuốc từ Nhóm 6')
+        const data = await res.json()
+        drugs.value = data.map(d => ({
+          id: d.id,
+          name: d.name,
+          activeIngredient: d.activeIngredient || '',
+          unit: d.unit || 'Viên',
+          price: d.price || 0,
+          stock: d.stockQuantity || d.stock || 0
+        }))
+      } catch (err) {
+        console.error('Lỗi tải danh sách thuốc:', err.message)
+      }
+    }
+
     const printPrescription = (historyItem) => {
       const printWindow = window.open('', '_blank');
       const htmlContent = `
@@ -3520,6 +3817,7 @@ export default {
       if (currentUser.value.token) {
         syncUserFromToken(currentUser.value.token)
         fetchBills()
+        fetchDrugs()
       }
 
       fetchDoctors()
@@ -3535,6 +3833,9 @@ export default {
           fetchPendingAppointments()
         }
         if (activeTab.value === 'pharmacy' && jwtToken.value) {
+          fetchDrugs()
+        }
+        if (activeTab.value === 'billing' && jwtToken.value) {
           fetchBills()
         }
       }, 5000)
@@ -3575,6 +3876,8 @@ export default {
       specialties,
       selectedSpecialty,
       availableSchedules,
+      bookedSlots,
+      activeTimeSlotsList,
       pendingAppointments,
       recentTicket,
       bookingForm,
@@ -3609,6 +3912,7 @@ export default {
       // Functions
       selectDoctor,
       selectSchedule,
+      fetchBookedSlots,
       bookAppointment,
       confirmAppointment,
       cancelAppointment,
@@ -3617,6 +3921,7 @@ export default {
       fetchPendingAppointments,
       fetchDoctorActiveQueue,
       fetchBills,
+      fetchDrugs,
       updateQueueStatus,
       fetchTestToken,
       onFilterChange,
@@ -3741,28 +4046,39 @@ export default {
   border-color: #003D9B !important;
 }
 
+
 /* ============================================
-   SIDEBAR NAVIGATION STYLES
+   SIDEBAR NAVIGATION STYLES (Đồng bộ PHP qlsinhvien)
    ============================================ */
 
 /* Sidebar menu item base */
 .sidebar-item {
-  transition: all 0.18s ease !important;
+  transition: all 0.2s ease !important;
   border-radius: 8px !important;
+  color: var(--text-secondary) !important;
 }
 
 .sidebar-item:hover {
-  background-color: rgba(0, 61, 155, 0.06) !important;
+  background-color: var(--primary-color) !important;
+  color: #ffffff !important;
+}
+
+.sidebar-item:hover .v-icon,
+.sidebar-item:hover .v-list-item-title,
+.sidebar-item:hover .v-list-item-subtitle {
+  color: #ffffff !important;
 }
 
 /* Active sidebar item */
 .sidebar-item-active {
-  background-color: rgba(0, 61, 155, 0.10) !important;
-  border-left: 3px solid #003D9B !important;
+  background-color: var(--primary-color) !important;
+  color: #ffffff !important;
 }
 
-.sidebar-item-active .v-list-item-title {
-  color: #003D9B !important;
+.sidebar-item-active .v-icon,
+.sidebar-item-active .v-list-item-title,
+.sidebar-item-active .v-list-item-subtitle {
+  color: #ffffff !important;
   font-weight: 600 !important;
 }
 
@@ -3783,6 +4099,6 @@ export default {
 
 /* Ensure content area has proper left padding when sidebar is open */
 .v-main {
-  background-color: #F4F5F7 !important;
+  background-color: var(--secondary-color) !important;
 }
 </style>

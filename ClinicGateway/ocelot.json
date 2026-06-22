@@ -40,6 +40,18 @@
       "UpstreamHttpMethod": [ "POST" ]
     },
     {
+      "DownstreamPathTemplate": "/api/appointments/booked-slots",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "26.88.31.108",
+          "Port": 5000
+        }
+      ],
+      "UpstreamPathTemplate": "/api/appointments-service/appointments/booked-slots",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
       "DownstreamPathTemplate": "/api/appointments/by-phone/{phone}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

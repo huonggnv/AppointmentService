@@ -18,19 +18,19 @@ import { createPinia } from 'pinia'
 const customLightTheme = {
   dark: false,
   colors: {
-    background: '#F4F5F7',
+    background: '#f8fafc',
     surface: '#FFFFFF',
-    primary: '#003D9B',
-    'primary-darken-1': '#002C70',
-    secondary: '#006C47',
-    'secondary-darken-1': '#004F34',
-    success: '#006C47',
-    'success-darken-1': '#004F34',
-    warning: '#851800',
-    'warning-darken-1': '#611100',
-    error: '#BA1A1A',
-    'error-darken-1': '#8A1313',
-    info: '#0052CC',
+    primary: '#1274e3',
+    'primary-darken-1': '#1c49c6',
+    secondary: '#64748b',
+    'secondary-darken-1': '#475569',
+    success: '#15803d',
+    'success-darken-1': '#166534',
+    warning: '#fff3cd',
+    'warning-darken-1': '#fef08a',
+    error: '#ff0019',
+    'error-darken-1': '#b91c1c',
+    info: '#1274e3',
   }
 }
 
