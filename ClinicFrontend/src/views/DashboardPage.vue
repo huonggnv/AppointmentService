@@ -95,9 +95,28 @@
           <template v-slot:prepend>
             <v-icon icon="mdi-pill" :color="activeTab === 'pharmacy' ? 'primary' : 'medium-emphasis'" />
           </template>
-          <v-list-item-title class="font-weight-medium">Kho Thuốc & Viện Phí</v-list-item-title>
+          <v-list-item-title class="font-weight-medium">Kho Thuoc</v-list-item-title>
           <template v-slot:subtitle>
-            <span class="text-caption">Dược / Thu ngân</span>
+            <span class="text-caption">Duoc si</span>
+          </template>
+        </v-list-item>
+
+        <!-- Billing: Vien phi -->
+        <v-list-item
+          v-if="currentUser.token && hasRole('Receptionist, Nurse, Admin')"
+          :active="activeTab === 'billing'"
+          value="billing"
+          rounded="lg"
+          class="mb-1 sidebar-item"
+          :class="{ 'sidebar-item-active': activeTab === 'billing' }"
+          @click="activeTab = 'billing'"
+        >
+          <template v-slot:prepend>
+            <v-icon :icon="activeTab === 'billing' ? 'mdi-cash-register' : 'mdi-cash-register'" :color="activeTab === 'billing' ? 'primary' : 'medium-emphasis'" />
+          </template>
+          <v-list-item-title class="font-weight-medium">Vien Phi</v-list-item-title>
+          <template v-slot:subtitle>
+            <span class="text-caption">Thu ngan</span>
           </template>
         </v-list-item>
 
@@ -1036,142 +1055,152 @@
 
           <!-- 4. PHARMACY & BILLING TAB (Dược sĩ & Thu ngân) -->
           <v-window-item value="pharmacy">
+            <!-- Header -->
+            <div class="d-flex justify-space-between align-center mb-6">
+              <div>
+                <h2 class="text-h5 font-weight-black text-primary mb-1">Quan ly Kho Thuoc</h2>
+                <p class="text-body-2 text-grey-darken-1 mb-0">Nhap kho, xuat thuoc theo don, kiem soat ton kho duoc pham</p>
+              </div>
+              <v-chip color="primary" variant="tonal" prepend-icon="mdi-pill">
+                {{ drugs.length }} loai thuoc
+              </v-chip>
+            </div>
+
             <v-row>
-              <!-- Thu viện phí -->
-              <v-col cols="12" md="6">
-                <v-card border flat class="bg-surface pa-6 mb-6">
-                  <div class="text-h6 font-weight-bold mb-4 text-primary">Danh sách hóa đơn viện phí phòng khám</div>
-                  
-                  <v-alert v-if="bills.length === 0" type="info" variant="tonal">
-                    Không có hóa đơn thanh toán nào hôm nay.
-                  </v-alert>
+              <!-- Form nhap thuoc moi -->
+              <v-col cols="12" md="4">
+                <v-card border flat class="bg-surface pa-6 mb-6 rounded-xl">
+                  <div class="text-subtitle-1 font-weight-bold mb-4 text-primary d-flex align-center">
+                    <v-icon icon="mdi-plus-circle" class="mr-2" />
+                    Nhap thuoc moi vao kho
+                  </div>
+                  <v-form @submit.prevent="addNewDrug">
+                    <v-text-field
+                      v-model="drugForm.name"
+                      label="Ten thuoc"
+                      variant="outlined"
+                      density="comfortable"
+                      rounded="lg"
+                      class="mb-3"
+                      prepend-inner-icon="mdi-pill"
+                      required
+                    />
+                    <v-text-field
+                      v-model="drugForm.activeIngredient"
+                      label="Hoat chat chinh"
+                      variant="outlined"
+                      density="comfortable"
+                      rounded="lg"
+                      class="mb-3"
+                      prepend-inner-icon="mdi-molecule"
+                    />
+                    <v-row dense>
+                      <v-col cols="4">
+                        <v-text-field
+                          v-model="drugForm.unit"
+                          label="Don vi"
+                          variant="outlined"
+                          density="comfortable"
+                          rounded="lg"
+                          required
+                        />
+                      </v-col>
+                      <v-col cols="4">
+                        <v-text-field
+                          v-model.number="drugForm.price"
+                          label="Gia ban"
+                          type="number"
+                          variant="outlined"
+                          density="comfortable"
+                          rounded="lg"
+                          required
+                        />
+                      </v-col>
+                      <v-col cols="4">
+                        <v-text-field
+                          v-model.number="drugForm.stock"
+                          label="Ton kho"
+                          type="number"
+                          variant="outlined"
+                          density="comfortable"
+                          rounded="lg"
+                          required
+                        />
+                      </v-col>
+                    </v-row>
+                    <v-btn type="submit" color="primary" block class="font-weight-bold mt-2" prepend-icon="mdi-package-variant-plus">
+                      Nhap kho thuoc
+                    </v-btn>
+                  </v-form>
+                </v-card>
 
-                  <v-list v-else bg-color="transparent" class="pa-0">
-                    <v-card v-for="b in bills" :key="b.id" border flat class="mb-3 pa-4">
-                      <div class="d-flex justify-space-between align-center mb-2">
-                        <span class="font-weight-bold">{{ b.patientName }}</span>
-                        <v-chip size="small" :color="b.status === 'DaThanhToan' ? 'success' : 'warning'">
-                          {{ b.status === 'DaThanhToan' ? 'Đã Thanh Toán' : 'Chờ Thanh Toán' }}
-                        </v-chip>
-                      </div>
-                      <div class="text-caption text-grey mb-1">Điện thoại: {{ b.patientPhone }}</div>
-                      <div class="text-caption text-grey mb-2">Ngày khám: {{ formatDate(b.date) }}</div>
-                      
-                      <v-divider class="my-2" />
-                      
-                      <div class="d-flex justify-space-between text-body-2 mb-1">
-                        <span>Phí khám bệnh:</span>
-                        <span>{{ formatMoney(b.consultationFee) }}đ</span>
-                      </div>
-                      <div class="d-flex justify-space-between text-body-2 mb-1">
-                        <span>Tiền thuốc đơn thuốc:</span>
-                        <span>{{ formatMoney(b.medicationFee) }}đ</span>
-                      </div>
-                      <div class="d-flex justify-space-between font-weight-bold text-subtitle-1 my-2">
-                        <span>Tổng tiền:</span>
-                        <span class="text-success">{{ formatMoney(b.totalAmount) }}đ</span>
-                      </div>
-
-                      <v-btn
-                        v-if="b.status === 'ChuaThanhToan'"
-                        color="success"
-                        block
-                        size="small"
-                        class="mt-2 font-weight-bold"
-                        @click="payBill(b.id)"
-                      >
-                        Xác nhận thu viện phí
-                      </v-btn>
-                    </v-card>
-                  </v-list>
+                <!-- Canh bao ton kho thap -->
+                <v-card border flat class="bg-surface pa-5 rounded-xl" style="border-color: rgba(133,24,0,0.2) !important; background-color: rgba(133,24,0,0.02) !important;">
+                  <div class="text-subtitle-2 font-weight-bold mb-3 text-warning d-flex align-center">
+                    <v-icon icon="mdi-alert-circle" class="mr-2" size="18" />
+                    Canh bao ton kho thap
+                  </div>
+                  <div v-if="drugs.filter(d => d.stock <= 100).length === 0" class="text-caption text-grey-darken-1">
+                    Tat ca thuoc deu du ton kho
+                  </div>
+                  <div v-for="d in drugs.filter(d => d.stock <= 100)" :key="'low-'+d.id" class="d-flex justify-space-between align-center mb-2">
+                    <div>
+                      <div class="text-body-2 font-weight-bold">{{ d.name }}</div>
+                      <div class="text-caption text-grey-darken-1">{{ d.activeIngredient }}</div>
+                    </div>
+                    <v-chip size="x-small" color="error" variant="flat" class="font-weight-bold">
+                      Con {{ d.stock }} {{ d.unit }}
+                    </v-chip>
+                  </div>
                 </v-card>
               </v-col>
 
-              <!-- Quản lý kho thuốc -->
-              <v-col cols="12" md="6">
-                <v-card border flat class="bg-surface pa-6 mb-6">
-                  <div class="text-h6 font-weight-bold mb-4 text-primary">Quản lý kho thuốc hiện tại</div>
-                  
-                  <!-- Form nhập thuốc mới -->
-                  <div class="bg-slate-900 pa-4 rounded-lg border mb-4">
-                    <div class="text-subtitle-2 font-weight-bold mb-2 text-grey-darken-1">Nhập thêm thuốc mới vào kho</div>
-                    <v-form @submit.prevent="addNewDrug">
-                      <v-row dense>
-                        <v-col cols="12" sm="6">
-                          <v-text-field
-                            v-model="drugForm.name"
-                            label="Tên thuốc"
-                            variant="outlined"
-                            density="comfortable"
-                            required
-                          />
-                        </v-col>
-                        <v-col cols="12" sm="6">
-                          <v-text-field
-                            v-model="drugForm.activeIngredient"
-                            label="Hoạt chất chính"
-                            variant="outlined"
-                            density="comfortable"
-                          />
-                        </v-col>
-                        <v-col cols="4">
-                          <v-text-field
-                            v-model="drugForm.unit"
-                            label="Đơn vị"
-                            variant="outlined"
-                            density="comfortable"
-                            required
-                          />
-                        </v-col>
-                        <v-col cols="4">
-                          <v-text-field
-                            v-model.number="drugForm.price"
-                            label="Giá bán"
-                            type="number"
-                            variant="outlined"
-                            density="comfortable"
-                            required
-                          />
-                        </v-col>
-                        <v-col cols="4">
-                          <v-text-field
-                            v-model.number="drugForm.stock"
-                            label="Tồn kho"
-                            type="number"
-                            variant="outlined"
-                            density="comfortable"
-                            required
-                          />
-                        </v-col>
-                      </v-row>
-                      <v-btn type="submit" color="primary" block size="small" class="font-weight-bold mt-2">
-                        Nhập kho thuốc
-                      </v-btn>
-                    </v-form>
+              <!-- Danh sach thuoc ton kho -->
+              <v-col cols="12" md="8">
+                <v-card border flat class="bg-surface rounded-xl overflow-hidden">
+                  <div class="pa-5 border-b d-flex justify-space-between align-center">
+                    <div>
+                      <h3 class="text-subtitle-1 font-weight-bold">Danh sach kho duoc pham</h3>
+                      <p class="text-caption text-grey-darken-1 mb-0">Cap nhat theo thoi gian thuc tu PharmacyDB</p>
+                    </div>
+                    <v-btn variant="tonal" color="primary" size="small" prepend-icon="mdi-refresh" @click="fetchDrugs">
+                      Lam moi
+                    </v-btn>
                   </div>
-
-                  <!-- Danh sách thuốc tồn kho -->
-                  <v-table density="compact" class="bg-surface rounded border">
+                  <v-table density="comfortable" class="bg-surface">
                     <thead>
                       <tr>
-                        <th class="text-left font-weight-bold">Tên thuốc</th>
-                        <th class="text-left font-weight-bold">Đơn vị</th>
-                        <th class="text-left font-weight-bold">Đơn giá</th>
-                        <th class="text-left font-weight-bold">Tồn kho</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">TEN THUOC / HOAT CHAT</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">DON VI</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">DON GIA</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">TON KHO</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">TRANG THAI</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="d in drugs" :key="d.id">
+                      <tr v-for="d in drugs" :key="d.id" class="hover-row">
                         <td>
-                          <div><strong>{{ d.name }}</strong></div>
-                          <div class="text-caption text-grey">{{ d.activeIngredient }}</div>
+                          <div class="font-weight-bold text-body-2">{{ d.name }}</div>
+                          <div class="text-caption text-grey-darken-1">{{ d.activeIngredient }}</div>
                         </td>
-                        <td>{{ d.unit }}</td>
-                        <td>{{ formatMoney(d.price) }}đ</td>
+                        <td class="text-body-2">{{ d.unit }}</td>
+                        <td class="font-weight-bold text-body-2">{{ formatMoney(d.price) }}d</td>
+                        <td class="font-weight-bold">{{ d.stock }}</td>
                         <td>
-                          <v-chip size="small" :color="d.stock > 100 ? 'success' : 'error'">
-                            {{ d.stock }}
+                          <v-chip
+                            size="x-small"
+                            :color="d.stock > 500 ? 'success' : d.stock > 100 ? 'warning' : 'error'"
+                            variant="flat"
+                            class="font-weight-bold"
+                          >
+                            {{ d.stock > 500 ? 'An toan' : d.stock > 100 ? 'Sap het' : 'Khan cap' }}
                           </v-chip>
+                        </td>
+                      </tr>
+                      <tr v-if="drugs.length === 0">
+                        <td colspan="5" class="text-center text-grey-darken-1 py-8">
+                          <v-icon icon="mdi-package-variant" size="36" class="mb-2 d-block mx-auto" />
+                          Chua co du lieu kho thuoc
                         </td>
                       </tr>
                     </tbody>
@@ -1181,14 +1210,155 @@
             </v-row>
           </v-window-item>
 
+          <!-- 4b. BILLING TAB (Vien phi) -->
+          <v-window-item value="billing">
+            <!-- Header -->
+            <div class="d-flex justify-space-between align-center mb-6">
+              <div>
+                <h2 class="text-h5 font-weight-black text-primary mb-1">Thu Vien Phi</h2>
+                <p class="text-body-2 text-grey-darken-1 mb-0">Xac nhan thanh toan hoa don phi kham + tien thuoc theo don</p>
+              </div>
+              <v-chip color="warning" variant="tonal" prepend-icon="mdi-clock-outline">
+                {{ bills.filter(b => b.status === 'ChuaThanhToan').length }} cho thanh toan
+              </v-chip>
+            </div>
+
+            <v-row>
+              <!-- Danh sach hoa don cho thanh toan -->
+              <v-col cols="12" lg="8">
+                <v-card border flat class="bg-surface rounded-xl overflow-hidden">
+                  <div class="pa-5 border-b d-flex justify-space-between align-center">
+                    <div>
+                      <h3 class="text-subtitle-1 font-weight-bold">Danh sach hoa don vien phi</h3>
+                      <p class="text-caption text-grey-darken-1 mb-0">Phi kham + thuoc theo don tu Medical Record Service</p>
+                    </div>
+                    <v-btn variant="tonal" color="primary" size="small" prepend-icon="mdi-refresh" @click="fetchBills">
+                      Lam moi
+                    </v-btn>
+                  </div>
+
+                  <div class="pa-4">
+                    <v-alert v-if="bills.length === 0" type="info" variant="tonal" rounded="lg">
+                      Khong co hoa don nao can xu ly hom nay.
+                    </v-alert>
+
+                    <v-card
+                      v-for="b in bills"
+                      :key="b.id"
+                      border
+                      flat
+                      class="mb-4 rounded-xl overflow-hidden"
+                      :style="b.status === 'DaThanhToan' ? 'opacity: 0.7;' : ''"
+                    >
+                      <!-- Bill header -->
+                      <div class="pa-4 d-flex justify-space-between align-center" :class="b.status === 'DaThanhToan' ? 'bg-success-lighten-5' : 'bg-warning-lighten-5'">
+                        <div class="d-flex align-center gap-3">
+                          <v-avatar :color="b.status === 'DaThanhToan' ? 'success' : 'warning'" variant="tonal" size="40">
+                            <v-icon :icon="b.status === 'DaThanhToan' ? 'mdi-check-circle' : 'mdi-clock-outline'" />
+                          </v-avatar>
+                          <div>
+                            <div class="font-weight-bold text-body-1">{{ b.patientName }}</div>
+                            <div class="text-caption text-grey-darken-1">SDD: {{ b.patientPhone }}</div>
+                          </div>
+                        </div>
+                        <v-chip
+                          :color="b.status === 'DaThanhToan' ? 'success' : 'warning'"
+                          variant="flat"
+                          size="small"
+                          class="font-weight-bold"
+                        >
+                          {{ b.status === 'DaThanhToan' ? 'Da Thanh Toan' : 'Cho Thanh Toan' }}
+                        </v-chip>
+                      </div>
+
+                      <!-- Bill detail -->
+                      <div class="pa-4">
+                        <div class="text-caption text-grey-darken-1 mb-3">Ngay kham: {{ formatDate(b.date) }}</div>
+                        <v-divider class="mb-3" />
+                        <div class="d-flex justify-space-between text-body-2 mb-2">
+                          <span class="text-grey-darken-1">Phi kham benh:</span>
+                          <span class="font-weight-bold">{{ formatMoney(b.consultationFee) }}d</span>
+                        </div>
+                        <div class="d-flex justify-space-between text-body-2 mb-2">
+                          <span class="text-grey-darken-1">Tien thuoc:</span>
+                          <span class="font-weight-bold">{{ formatMoney(b.medicationFee) }}d</span>
+                        </div>
+                        <v-divider class="my-2" />
+                        <div class="d-flex justify-space-between text-subtitle-1 font-weight-black">
+                          <span>Tong cong:</span>
+                          <span class="text-success">{{ formatMoney(b.totalAmount) }}d</span>
+                        </div>
+                        <v-btn
+                          v-if="b.status === 'ChuaThanhToan'"
+                          color="success"
+                          block
+                          class="mt-4 font-weight-bold"
+                          prepend-icon="mdi-cash-check"
+                          :loading="loading"
+                          @click="payBill(b.id)"
+                        >
+                          Xac nhan thu vien phi
+                        </v-btn>
+                      </div>
+                    </v-card>
+                  </div>
+                </v-card>
+              </v-col>
+
+              <!-- Panel thong ke nhanh -->
+              <v-col cols="12" lg="4">
+                <v-card border flat class="bg-surface pa-5 rounded-xl mb-4">
+                  <h3 class="text-subtitle-1 font-weight-bold mb-4">Tong ket hom nay</h3>
+                  <div class="d-flex justify-space-between align-center mb-4">
+                    <div class="text-caption text-grey-darken-1">Tong hoa don</div>
+                    <div class="text-h6 font-weight-black">{{ bills.length }}</div>
+                  </div>
+                  <div class="d-flex justify-space-between align-center mb-4">
+                    <div class="text-caption text-grey-darken-1">Da thanh toan</div>
+                    <div class="text-h6 font-weight-black text-success">{{ bills.filter(b => b.status === 'DaThanhToan').length }}</div>
+                  </div>
+                  <div class="d-flex justify-space-between align-center mb-4">
+                    <div class="text-caption text-grey-darken-1">Cho thu</div>
+                    <div class="text-h6 font-weight-black text-warning">{{ bills.filter(b => b.status === 'ChuaThanhToan').length }}</div>
+                  </div>
+                  <v-divider class="my-3" />
+                  <div class="d-flex justify-space-between align-center">
+                    <div class="text-caption text-grey-darken-1 font-weight-bold">Doanh thu da thu</div>
+                    <div class="text-subtitle-1 font-weight-black text-success">
+                      {{ formatMoney(bills.filter(b => b.status === 'DaThanhToan').reduce((s, b) => s + (b.totalAmount || 0), 0)) }}d
+                    </div>
+                  </div>
+                </v-card>
+
+                <v-card border flat class="bg-surface pa-5 rounded-xl">
+                  <h3 class="text-subtitle-1 font-weight-bold mb-3">Huong dan quy trinh</h3>
+                  <div class="d-flex align-start gap-3 mb-3">
+                    <v-avatar color="primary" variant="tonal" size="28" class="mt-1">
+                      <span class="text-caption font-weight-bold">1</span>
+                    </v-avatar>
+                    <p class="text-body-2 text-grey-darken-1 mb-0">Benh nhan kham xong, bac si ke don thuoc (prescription.created)</p>
+                  </div>
+                  <div class="d-flex align-start gap-3 mb-3">
+                    <v-avatar color="primary" variant="tonal" size="28" class="mt-1">
+                      <span class="text-caption font-weight-bold">2</span>
+                    </v-avatar>
+                    <p class="text-body-2 text-grey-darken-1 mb-0">He thong tu dong tinh phi kham + tien thuoc theo don</p>
+                  </div>
+                  <div class="d-flex align-start gap-3">
+                    <v-avatar color="success" variant="tonal" size="28" class="mt-1">
+                      <span class="text-caption font-weight-bold">3</span>
+                    </v-avatar>
+                    <p class="text-body-2 text-grey-darken-1 mb-0">Thu ngan bam "Xac nhan thu vien phi" de hoan tat thanh toan</p>
+                  </div>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-window-item>
+
           <!-- 5. ADMIN PORTAL TAB (Quản trị Bác sĩ & Lịch hẹn của Nhóm 1) -->
           <v-window-item value="admin">
             <!-- Tabs phụ của Admin -->
             <v-tabs v-model="adminSubTab" color="primary" rounded="lg" class="mb-6" border>
-              <v-tab value="system-dashboard" class="font-weight-bold">
-                <v-icon icon="mdi-view-dashboard" class="mr-2" />
-                Tổng quan Hệ thống
-              </v-tab>
               <v-tab value="doctors-management" class="font-weight-bold">
                 <v-icon icon="mdi-doctor" class="mr-2" />
                 Quản lý Bác sĩ
@@ -1204,254 +1374,6 @@
             </v-tabs>
 
             <v-window v-model="adminSubTab">
-              <!-- Subtab 0: Tổng quan Hệ thống (Stitch Style) -->
-              <v-window-item value="system-dashboard">
-                <div class="space-y-6">
-                  <!-- Welcome Header -->
-                  <div class="d-flex justify-space-between align-end mb-6">
-                    <div>
-                      <h1 class="text-h4 font-weight-black text-on-surface">Tổng quan Hệ thống</h1>
-                      <p class="text-body-1 text-grey-darken-1 mt-1">Chào mừng trở lại, Admin. Dưới đây là tình hình hoạt động của phòng khám hôm nay.</p>
-                    </div>
-                    <v-btn color="primary" class="font-weight-bold" prepend-icon="mdi-plus" @click="adminSubTab = 'doctors-management'">
-                      Thêm bác sĩ mới
-                    </v-btn>
-                  </div>
-
-                  <!-- Key Metrics Grid -->
-                  <v-row class="mb-6">
-                    <!-- Metric 1: Total Patients -->
-                    <v-col cols="12" md="4">
-                      <v-card border flat class="pa-6 bg-surface rounded-xl d-flex justify-space-between align-center">
-                        <div>
-                          <p class="text-caption font-weight-bold text-grey-darken-1 uppercase">Bệnh nhân hôm nay</p>
-                          <h2 class="text-h4 font-weight-black text-on-surface mt-1">142</h2>
-                          <div class="d-flex align-center gap-1 mt-2 text-success font-weight-bold text-caption">
-                            <v-icon icon="mdi-trending-up" size="16" class="mr-1" />
-                            <span>+12% so với hôm qua</span>
-                          </div>
-                        </div>
-                        <v-avatar color="primary" variant="tonal" size="48">
-                          <v-icon icon="mdi-account-group" color="primary" size="28" />
-                        </v-avatar>
-                      </v-card>
-                    </v-col>
-                    
-                    <!-- Metric 2: Revenue -->
-                    <v-col cols="12" md="4">
-                      <v-card border flat class="pa-6 bg-surface rounded-xl d-flex justify-space-between align-center">
-                        <div>
-                          <p class="text-caption font-weight-bold text-grey-darken-1 uppercase">Doanh thu ngày</p>
-                          <h2 class="text-h4 font-weight-black text-on-surface mt-1">45.2M ₫</h2>
-                          <div class="d-flex align-center gap-1 mt-2 text-success font-weight-bold text-caption">
-                            <v-icon icon="mdi-credit-card-check" size="16" class="mr-1" />
-                            <span>Đã thanh toán 92%</span>
-                          </div>
-                        </div>
-                        <v-avatar color="success" variant="tonal" size="48">
-                          <v-icon icon="mdi-wallet" color="success" size="28" />
-                        </v-avatar>
-                      </v-card>
-                    </v-col>
-
-                    <!-- Metric 3: Alerts -->
-                    <v-col cols="12" md="4">
-                      <v-card border flat class="pa-6 bg-surface rounded-xl d-flex justify-space-between align-center" style="background-color: rgba(133, 24, 0, 0.03) !important; border: 1px solid rgba(133, 24, 0, 0.15) !important;">
-                        <div>
-                          <p class="text-caption font-weight-bold text-warning uppercase">Cảnh báo tồn kho</p>
-                          <h2 class="text-h4 font-weight-black text-warning mt-1">08 mục</h2>
-                          <div class="d-flex align-center gap-1 mt-2 text-warning font-weight-bold text-caption">
-                            <v-icon icon="mdi-alert-circle" size="16" class="mr-1" />
-                            <span>Cần nhập hàng ngay</span>
-                          </div>
-                        </div>
-                        <v-avatar color="warning" variant="tonal" size="48">
-                          <v-icon icon="mdi-package-variant-alert" color="warning" size="28" />
-                        </v-avatar>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-
-                  <!-- Bento Grid Layout: Kho dược & Bác sĩ -->
-                  <v-row class="mb-6">
-                    <!-- Left: Kho Dược Phẩm (8 Columns) -->
-                    <v-col cols="12" lg="8">
-                      <v-card border flat class="bg-surface rounded-xl overflow-hidden">
-                        <div class="pa-6 border-b d-flex justify-space-between align-center">
-                          <div>
-                            <h3 class="text-h6 font-weight-bold text-on-surface">Kho Dược Phẩm</h3>
-                            <p class="text-caption text-grey-darken-1">Danh sách thuốc và vật tư y tế hiện tại</p>
-                          </div>
-                          <v-btn variant="text" color="primary" class="font-weight-bold" @click="activeTab = 'pharmacy'">Xem tất cả</v-btn>
-                        </div>
-                        
-                        <v-table density="comfortable" class="bg-surface">
-                          <thead>
-                            <tr class="bg-slate-900">
-                              <th class="font-weight-bold text-caption text-grey-darken-1 uppercase">Tên Thuốc</th>
-                              <th class="font-weight-bold text-caption text-grey-darken-1 uppercase">Hoạt Chất</th>
-                              <th class="font-weight-bold text-caption text-grey-darken-1 uppercase">Tồn Kho</th>
-                              <th class="font-weight-bold text-caption text-grey-darken-1 uppercase">Đơn Giá</th>
-                              <th class="font-weight-bold text-caption text-grey-darken-1 uppercase">Trạng Thái</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr v-for="d in drugs.slice(0, 5)" :key="d.id" class="hover-row transition-all">
-                              <td class="font-weight-bold">{{ d.name }}</td>
-                              <td>{{ d.activeIngredient }}</td>
-                              <td class="font-mono">{{ d.stock }} {{ d.unit }}</td>
-                              <td class="font-mono">{{ formatMoney(d.price) }}đ</td>
-                              <td>
-                                <v-chip size="x-small" :color="d.stock > 500 ? 'success' : d.stock > 150 ? 'warning' : 'error'" variant="flat" class="font-weight-bold">
-                                  {{ d.stock > 500 ? 'An toàn' : d.stock > 150 ? 'Sắp hết' : 'Khẩn cấp' }}
-                                </v-chip>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </v-table>
-                      </v-card>
-                    </v-col>
-
-                    <!-- Right: Đội ngũ Bác sĩ (4 Columns) -->
-                    <v-col cols="12" lg="4">
-                      <v-card border flat class="bg-surface rounded-xl pa-6 d-flex flex-column h-100">
-                        <div class="d-flex justify-space-between align-center mb-6">
-                          <h3 class="text-h6 font-weight-bold text-on-surface">Đội ngũ Bác sĩ</h3>
-                          <v-icon icon="mdi-dots-vertical" color="grey-darken-1" />
-                        </div>
-                        
-                        <div class="d-flex flex-column gap-3 flex-grow-1">
-                          <!-- Bác sĩ 1 -->
-                          <div class="d-flex align-center gap-4 pa-3 border rounded-lg hover-card-border cursor-pointer transition-all">
-                            <v-avatar color="primary-lighten-2" size="40">
-                              <span class="text-white font-weight-bold text-subtitle-2">AN</span>
-                            </v-avatar>
-                            <div class="flex-grow-1">
-                              <p class="font-weight-bold text-body-2 mb-0">BS. Nguyễn Văn An</p>
-                              <p class="text-caption text-grey-darken-1 mb-0">Khoa Nội tổng quát</p>
-                            </div>
-                            <div class="d-flex flex-column align-end">
-                              <span class="w-3 h-3 rounded-full bg-success" style="display: block; border-radius: 50%;"></span>
-                              <span class="text-[9px] text-grey-darken-1 uppercase font-weight-bold mt-1">Đang trực</span>
-                            </div>
-                          </div>
-
-                          <!-- Bác sĩ 2 -->
-                          <div class="d-flex align-center gap-4 pa-3 border rounded-lg hover-card-border cursor-pointer transition-all">
-                            <v-avatar color="secondary-lighten-2" size="40">
-                              <span class="text-white font-weight-bold text-subtitle-2">TB</span>
-                            </v-avatar>
-                            <div class="flex-grow-1">
-                              <p class="font-weight-bold text-body-2 mb-0">BS. Trần Thị Bình</p>
-                              <p class="text-caption text-grey-darken-1 mb-0">Khoa Nhi khoa</p>
-                            </div>
-                            <div class="d-flex flex-column align-end">
-                              <span class="w-3 h-3 rounded-full bg-success" style="display: block; border-radius: 50%;"></span>
-                              <span class="text-[9px] text-grey-darken-1 uppercase font-weight-bold mt-1">Đang trực</span>
-                            </div>
-                          </div>
-
-                          <!-- Bác sĩ 3 -->
-                          <div class="d-flex align-center gap-4 pa-3 border rounded-lg hover-card-border cursor-pointer transition-all">
-                            <v-avatar color="warning-lighten-2" size="40">
-                              <span class="text-white font-weight-bold text-subtitle-2">LN</span>
-                            </v-avatar>
-                            <div class="flex-grow-1">
-                              <p class="font-weight-bold text-body-2 mb-0">BS. Lê Hoàng Nam</p>
-                              <p class="text-caption text-grey-darken-1 mb-0">Khoa Da liễu</p>
-                            </div>
-                            <div class="d-flex flex-column align-end">
-                              <span class="w-3 h-3 rounded-full bg-grey-lighten-1" style="display: block; border-radius: 50%;"></span>
-                              <span class="text-[9px] text-grey-darken-1 uppercase font-weight-bold mt-1">Nghỉ ca</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <v-btn variant="outlined" color="primary" class="font-weight-bold mt-6" block @click="adminSubTab = 'schedules-management'">
-                          Quản lý lịch trực
-                        </v-btn>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-
-                  <!-- Bottom: Biểu đồ Báo cáo tài chính (12 Columns) -->
-                  <v-row class="mb-6">
-                    <v-col cols="12">
-                      <v-card border flat class="bg-surface rounded-xl pa-6">
-                        <div class="d-flex justify-space-between align-center mb-6">
-                          <div>
-                            <h3 class="text-h6 font-weight-bold text-on-surface">Báo cáo Tài chính</h3>
-                            <p class="text-caption text-grey-darken-1">Thống kê doanh thu phòng khám theo các ngày trong tuần</p>
-                          </div>
-                          <div class="d-flex gap-2">
-                            <v-select
-                              label="Thời gian"
-                              :items="['7 ngày qua', '30 ngày qua', 'Năm nay']"
-                              model-value="7 ngày qua"
-                              variant="outlined"
-                              density="compact"
-                              hide-details
-                              style="width: 140px;"
-                            />
-                            <v-btn icon="mdi-download" variant="tonal" density="comfortable" color="primary" />
-                          </div>
-                        </div>
-
-                        <!-- Bar Chart Representation using CSS -->
-                        <div class="d-flex align-end justify-space-between pt-6 border-b border-l px-4 position-relative" style="height: 250px; border-color: rgba(115, 118, 133, 0.15) !important;">
-                          <!-- Grid lines absolute background -->
-                          <div class="position-absolute w-100 h-100 left-0 top-0 d-flex flex-column justify-space-between pointer-events-none opacity-10">
-                            <div class="border-t w-100" style="height: 0;"></div>
-                            <div class="border-t w-100" style="height: 0;"></div>
-                            <div class="border-t w-100" style="height: 0;"></div>
-                            <div class="border-t w-100" style="height: 0;"></div>
-                          </div>
-
-                          <!-- Thứ 2 -->
-                          <div class="flex-grow-1 mx-2 bg-primary opacity-20 rounded-t-sm hover-bar position-relative group cursor-pointer" style="height: 40%;">
-                            <div class="tooltip position-absolute bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style="top: -35px; left: 50%; transform: translateX(-50%); z-index: 10;">12.5M</div>
-                          </div>
-                          <!-- Thứ 3 -->
-                          <div class="flex-grow-1 mx-2 bg-primary opacity-20 rounded-t-sm hover-bar position-relative group cursor-pointer" style="height: 65%;">
-                            <div class="tooltip position-absolute bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style="top: -35px; left: 50%; transform: translateX(-50%); z-index: 10;">18.2M</div>
-                          </div>
-                          <!-- Thứ 4 -->
-                          <div class="flex-grow-1 mx-2 bg-primary opacity-30 rounded-t-sm hover-bar position-relative group cursor-pointer" style="height: 50%;">
-                            <div class="tooltip position-absolute bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style="top: -35px; left: 50%; transform: translateX(-50%); z-index: 10;">15.0M</div>
-                          </div>
-                          <!-- Thứ 5 -->
-                          <div class="flex-grow-1 mx-2 bg-primary opacity-40 rounded-t-sm hover-bar position-relative group cursor-pointer" style="height: 85%;">
-                            <div class="tooltip position-absolute bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style="top: -35px; left: 50%; transform: translateX(-50%); z-index: 10;">22.8M</div>
-                          </div>
-                          <!-- Thứ 6 -->
-                          <div class="flex-grow-1 mx-2 bg-primary opacity-20 rounded-t-sm hover-bar position-relative group cursor-pointer" style="height: 45%;">
-                            <div class="tooltip position-absolute bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style="top: -35px; left: 50%; transform: translateX(-50%); z-index: 10;">13.1M</div>
-                          </div>
-                          <!-- Thứ 7 -->
-                          <div class="flex-grow-1 mx-2 bg-primary opacity-25 rounded-t-sm hover-bar position-relative group cursor-pointer" style="height: 60%;">
-                            <div class="tooltip position-absolute bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style="top: -35px; left: 50%; transform: translateX(-50%); z-index: 10;">17.5M</div>
-                          </div>
-                          <!-- Chủ nhật (Hiện tại / Highlight) -->
-                          <div class="flex-grow-1 mx-2 bg-primary rounded-t-sm hover-bar position-relative group cursor-pointer" style="height: 95%;">
-                            <div class="tooltip position-absolute bg-primary text-white font-bold text-[11px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity shadow" style="top: -35px; left: 50%; transform: translateX(-50%); z-index: 10;">28.4M</div>
-                          </div>
-                        </div>
-
-                        <div class="d-flex justify-space-between mt-3 px-4 text-[10px] text-grey-darken-1 font-weight-bold uppercase tracking-wider">
-                          <span>Thứ 2</span>
-                          <span>Thứ 3</span>
-                          <span>Thứ 4</span>
-                          <span>Thứ 5</span>
-                          <span>Thứ 6</span>
-                          <span>Thứ 7</span>
-                          <span class="text-primary font-weight-black">Chủ Nhật</span>
-                        </div>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </div>
-              </v-window-item>
-
               <!-- Subtab 1: Quản lý Bác sĩ (CRUD) -->
               <v-window-item value="doctors-management">
                 <v-row>
@@ -3109,7 +3031,7 @@ export default {
     }
 
     // Bổ sung các biến và hàm cho đề tài 05
-    const adminSubTab = ref('system-dashboard')
+    const adminSubTab = ref('doctors-management')
     const patientSearchPhone = ref('')
     const patientHistories = ref([])
     const patientHistoryLoading = ref(false)

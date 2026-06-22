@@ -42,14 +42,6 @@ const vuetify = createVuetify({
     themes: {
       customLightTheme
     }
-  },
-  // Đặt font mặc định cho tất cả Vuetify typography
-  defaults: {
-    VBtn: { style: "font-family: 'Inter', sans-serif;" },
-    VTextField: { style: "font-family: 'Inter', sans-serif;" },
-    VSelect: { style: "font-family: 'Inter', sans-serif;" },
-    VListItem: { style: "font-family: 'Inter', sans-serif;" },
-    VCard: { style: "font-family: 'Inter', sans-serif;" },
   }
 })
 

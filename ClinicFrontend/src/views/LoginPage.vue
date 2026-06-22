@@ -197,10 +197,19 @@
           />
           <v-text-field
             v-model="gatewayApiUrl"
-            label="Địa chỉ API Gateway (Lịch trực / Hàng chờ)"
+            label="Địa chỉ API Gateway (Nhóm mình)"
             variant="outlined"
             density="comfortable"
+            class="mb-4"
             hint="Mặc định: http://localhost:5000/api"
+            persistent-hint
+          />
+          <v-text-field
+            v-model="medicalApiUrl"
+            label="Địa chỉ API Bệnh Án (Nhóm 4)"
+            variant="outlined"
+            density="comfortable"
+            hint="Mặc định: http://26.15.45.202:5000/api"
             persistent-hint
           />
         </v-card-text>
@@ -231,8 +240,9 @@ export default {
     const configDialog = ref(false)
     const errorMsg = ref('')
 
-    const authApiUrl = ref(localStorage.getItem('clinic_api_url') || 'http://26.71.15.204:5000/api')
-    const gatewayApiUrl = ref(localStorage.getItem('clinic_gateway_url') || 'http://localhost:5000/api')
+    const authApiUrl = ref(localStorage.getItem('clinic_auth_api_url') || 'http://26.71.15.204:5000/api')
+    const gatewayApiUrl = ref(localStorage.getItem('clinic_api_url') || 'http://localhost:5000/api')
+    const medicalApiUrl = ref(localStorage.getItem('clinic_medical_api_url') || 'http://26.15.45.202:5000/api')
 
     const authForm = ref({
       username: '',
@@ -257,8 +267,9 @@ export default {
     }
 
     const saveConfig = () => {
-      localStorage.setItem('clinic_api_url', authApiUrl.value)
-      localStorage.setItem('clinic_gateway_url', gatewayApiUrl.value)
+      localStorage.setItem('clinic_auth_api_url', authApiUrl.value)
+      localStorage.setItem('clinic_api_url', gatewayApiUrl.value)
+      localStorage.setItem('clinic_medical_api_url', medicalApiUrl.value)
       configDialog.value = false
     }
 
@@ -363,6 +374,7 @@ export default {
       errorMsg,
       authApiUrl,
       gatewayApiUrl,
+      medicalApiUrl,
       authForm,
       goHome,
       toggleMode,
