@@ -423,7 +423,7 @@
                       >
                         <div class="d-flex justify-between align-center mb-1">
                           <span class="font-weight-bold text-subtitle-1">{{ doc.fullName }}</span>
-                          <v-chip size="x-small" color="primary" variant="flat">{{ doc.specialty }}</v-chip>
+                          <v-chip size="x-small" :color="getSpecialtyColor(doc.specialty)" variant="flat">{{ doc.specialty }}</v-chip>
                         </div>
                         <div class="text-caption mb-2" :class="bookingForm.doctorId === doc.id ? 'text-grey-lighten-2' : 'text-grey-darken-1'">{{ doc.qualifications }}</div>
                         <div class="d-flex justify-space-between align-center">
@@ -1365,7 +1365,7 @@
                           <tr v-for="doc in doctors" :key="doc.id">
                             <td class="font-weight-bold">{{ doc.fullName }}</td>
                             <td>
-                              <v-chip color="primary" size="small">{{ doc.specialty }}</v-chip>
+                              <v-chip :color="getSpecialtyColor(doc.specialty)" size="small" variant="flat">{{ doc.specialty }}</v-chip>
                             </td>
                             <td>{{ doc.qualifications }}</td>
                             <td class="text-success font-weight-bold">{{ formatMoney(doc.consultationFee) }}đ</td>
@@ -1588,15 +1588,17 @@
                   density="comfortable"
                   class="mb-3"
                 />
-                <v-text-field
+                <v-select
                   v-model="editingDoctor.specialty"
+                  :items="availableSpecialties"
                   label="Chuyên khoa"
                   variant="outlined"
                   density="comfortable"
                   class="mb-3"
                 />
-                <v-text-field
+                <v-select
                   v-model="editingDoctor.qualifications"
+                  :items="availableQualifications"
                   label="Học vị/Bằng cấp"
                   variant="outlined"
                   density="comfortable"
@@ -1840,19 +1842,19 @@
             class="mb-3"
             required
           />
-          <v-text-field
+          <v-select
             v-model="doctorForm.specialty"
+            :items="availableSpecialties"
             label="Chuyên khoa"
-            placeholder="Nội khoa, Da liễu, Nhi khoa, Răng Hàm Mặt"
             variant="outlined"
             density="comfortable"
             class="mb-3"
             required
           />
-          <v-text-field
+          <v-select
             v-model="doctorForm.qualifications"
+            :items="availableQualifications"
             label="Học vị bằng cấp"
-            placeholder="Thạc sĩ Bác sĩ, Tiến sĩ Y khoa"
             variant="outlined"
             density="comfortable"
             class="mb-3"
@@ -1895,6 +1897,27 @@ export default {
     const sidebarOpen = ref(true)
     const sidebarRail = ref(false)
     const headerSearch = ref('')
+
+    // Chuyen khoa va Hoc vi co san de chon
+    const availableSpecialties = ref([
+      'Nội khoa',
+      'Ngoại khoa',
+      'Nhi khoa',
+      'Da liễu',
+      'Răng Hàm Mặt',
+      'Tai Mũi Họng',
+      'Phụ sản'
+    ])
+
+    const availableQualifications = ref([
+      'Bác sĩ',
+      'Bác sĩ Chuyên khoa 1',
+      'Bác sĩ Chuyên khoa 2',
+      'Thạc sĩ Bác sĩ',
+      'Tiến sĩ Y khoa',
+      'Phó Giáo sư',
+      'Giáo sư'
+    ])
 
     // API Configurations
     const menuOpen = ref(false)
@@ -3296,11 +3319,19 @@ export default {
       }
     }
 
+    const generateGuid = () => {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0
+        const v = c === 'x' ? r : (r & 0x3 | 0x8)
+        return v.toString(16)
+      })
+    }
+
     const addNewDoctor = async () => {
       try {
         loading.value = true
         const newDoc = {
-          id: 'doc_' + Math.random().toString(36).substr(2, 9),
+          id: generateGuid(),
           fullName: doctorForm.value.fullName,
           specialty: doctorForm.value.specialty,
           qualifications: doctorForm.value.qualifications,
@@ -3879,6 +3910,19 @@ export default {
       if (tvInterval) clearInterval(tvInterval)
     })
 
+    const getSpecialtyColor = (specialty) => {
+      if (!specialty) return 'grey'
+      const spec = specialty.toLowerCase().trim()
+      if (spec.includes('nội khoa')) return 'blue'
+      if (spec.includes('nhi khoa')) return 'teal'
+      if (spec.includes('da liễu')) return 'orange'
+      if (spec.includes('răng hàm mặt')) return 'purple'
+      if (spec.includes('tai mũi họng')) return 'red'
+      if (spec.includes('ngoại khoa')) return 'indigo'
+      if (spec.includes('phụ sản')) return 'pink'
+      return 'primary'
+    }
+
     return {
       // Sidebar & Layout
       sidebarOpen,
@@ -3992,7 +4036,10 @@ export default {
       formatTime,
       formatTimeSpan,
       getStatusColor,
-      filteredDoctors
+      filteredDoctors,
+      getSpecialtyColor,
+      availableSpecialties,
+      availableQualifications
     }
   }
 }
