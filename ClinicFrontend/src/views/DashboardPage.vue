@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-layout>
     <!-- =====================================================
          SIDEBAR NAVIGATION DRAWER (Co rút khi TV mode)
          ===================================================== -->
@@ -1856,7 +1856,7 @@
       </div> <!-- Đóng thẻ div v-else -->
       </v-container>
     </v-main>
-  </v-app>
+  </v-layout>
 </template>
 
 <script>
@@ -3969,6 +3969,12 @@ export default {
 </script>
 
 <style>
+.v-navigation-drawer {
+  position: fixed !important;
+  height: 100vh !important;
+  top: 0 !important;
+}
+
 .hover-card {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #DFE1E6 !important;
