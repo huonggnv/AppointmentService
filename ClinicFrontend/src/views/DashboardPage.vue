@@ -95,9 +95,9 @@
           <template v-slot:prepend>
             <v-icon icon="mdi-pill" :color="activeTab === 'pharmacy' ? 'primary' : 'medium-emphasis'" />
           </template>
-          <v-list-item-title class="font-weight-medium">Kho Thuoc</v-list-item-title>
+          <v-list-item-title class="font-weight-medium">Kho Thuốc</v-list-item-title>
           <template v-slot:subtitle>
-            <span class="text-caption">Duoc si</span>
+            <span class="text-caption">Dược sĩ</span>
           </template>
         </v-list-item>
 
@@ -114,9 +114,9 @@
           <template v-slot:prepend>
             <v-icon :icon="activeTab === 'billing' ? 'mdi-cash-register' : 'mdi-cash-register'" :color="activeTab === 'billing' ? 'primary' : 'medium-emphasis'" />
           </template>
-          <v-list-item-title class="font-weight-medium">Vien Phi</v-list-item-title>
+          <v-list-item-title class="font-weight-medium">Viện Phí</v-list-item-title>
           <template v-slot:subtitle>
-            <span class="text-caption">Thu ngan</span>
+            <span class="text-caption">Thu ngân</span>
           </template>
         </v-list-item>
 
@@ -1082,90 +1082,29 @@
             <!-- Header -->
             <div class="d-flex justify-space-between align-center mb-6">
               <div>
-                <h2 class="text-h5 font-weight-black text-primary mb-1">Quan ly Kho Thuoc</h2>
-                <p class="text-body-2 text-grey-darken-1 mb-0">Nhap kho, xuat thuoc theo don, kiem soat ton kho duoc pham</p>
+                <h2 class="text-h5 font-weight-black text-primary mb-1">Quản lý Kho Thuốc</h2>
+                <p class="text-body-2 text-grey-darken-1 mb-0">Nhập kho, xuất thuốc theo đơn, kiểm soát tồn kho dược phẩm</p>
               </div>
-              <v-chip color="primary" variant="tonal" prepend-icon="mdi-pill">
-                {{ drugs.length }} loai thuoc
-              </v-chip>
+              <div class="d-flex gap-2">
+                <v-chip color="primary" variant="tonal" prepend-icon="mdi-pill">
+                  {{ drugs.length }} loại thuốc
+                </v-chip>
+                <v-btn color="primary" prepend-icon="mdi-plus" class="font-weight-bold" @click="addDrugDialog = true">
+                  Nhập thuốc mới
+                </v-btn>
+              </div>
             </div>
 
             <v-row>
-              <!-- Form nhap thuoc moi -->
+              <!-- Canh bao ton kho thap -->
               <v-col cols="12" md="4">
-                <v-card border flat class="bg-surface pa-6 mb-6 rounded-xl">
-                  <div class="text-subtitle-1 font-weight-bold mb-4 text-primary d-flex align-center">
-                    <v-icon icon="mdi-plus-circle" class="mr-2" />
-                    Nhap thuoc moi vao kho
-                  </div>
-                  <v-form @submit.prevent="addNewDrug">
-                    <v-text-field
-                      v-model="drugForm.name"
-                      label="Ten thuoc"
-                      variant="outlined"
-                      density="comfortable"
-                      rounded="lg"
-                      class="mb-3"
-                      prepend-inner-icon="mdi-pill"
-                      required
-                    />
-                    <v-text-field
-                      v-model="drugForm.activeIngredient"
-                      label="Hoat chat chinh"
-                      variant="outlined"
-                      density="comfortable"
-                      rounded="lg"
-                      class="mb-3"
-                      prepend-inner-icon="mdi-molecule"
-                    />
-                    <v-row dense>
-                      <v-col cols="4">
-                        <v-text-field
-                          v-model="drugForm.unit"
-                          label="Don vi"
-                          variant="outlined"
-                          density="comfortable"
-                          rounded="lg"
-                          required
-                        />
-                      </v-col>
-                      <v-col cols="4">
-                        <v-text-field
-                          v-model.number="drugForm.price"
-                          label="Gia ban"
-                          type="number"
-                          variant="outlined"
-                          density="comfortable"
-                          rounded="lg"
-                          required
-                        />
-                      </v-col>
-                      <v-col cols="4">
-                        <v-text-field
-                          v-model.number="drugForm.stock"
-                          label="Ton kho"
-                          type="number"
-                          variant="outlined"
-                          density="comfortable"
-                          rounded="lg"
-                          required
-                        />
-                      </v-col>
-                    </v-row>
-                    <v-btn type="submit" color="primary" block class="font-weight-bold mt-2" prepend-icon="mdi-package-variant-plus">
-                      Nhap kho thuoc
-                    </v-btn>
-                  </v-form>
-                </v-card>
-
-                <!-- Canh bao ton kho thap -->
                 <v-card border flat class="bg-surface pa-5 rounded-xl" style="border-color: rgba(133,24,0,0.2) !important; background-color: rgba(133,24,0,0.02) !important;">
                   <div class="text-subtitle-2 font-weight-bold mb-3 text-warning d-flex align-center">
                     <v-icon icon="mdi-alert-circle" class="mr-2" size="18" />
-                    Canh bao ton kho thap
+                    Cảnh báo tồn kho thấp
                   </div>
                   <div v-if="drugs.filter(d => d.stock <= 100).length === 0" class="text-caption text-grey-darken-1">
-                    Tat ca thuoc deu du ton kho
+                    Tất cả thuốc đều đủ tồn kho
                   </div>
                   <div v-for="d in drugs.filter(d => d.stock <= 100)" :key="'low-'+d.id" class="d-flex justify-space-between align-center mb-2">
                     <div>
@@ -1173,7 +1112,7 @@
                       <div class="text-caption text-grey-darken-1">{{ d.activeIngredient }}</div>
                     </div>
                     <v-chip size="x-small" color="error" variant="flat" class="font-weight-bold">
-                      Con {{ d.stock }} {{ d.unit }}
+                      Còn {{ d.stock }} {{ d.unit }}
                     </v-chip>
                   </div>
                 </v-card>
@@ -1184,21 +1123,21 @@
                 <v-card border flat class="bg-surface rounded-xl overflow-hidden">
                   <div class="pa-5 border-b d-flex justify-space-between align-center">
                     <div>
-                      <h3 class="text-subtitle-1 font-weight-bold">Danh sach kho duoc pham</h3>
-                      <p class="text-caption text-grey-darken-1 mb-0">Cap nhat theo thoi gian thuc tu PharmacyDB</p>
+                      <h3 class="text-subtitle-1 font-weight-bold">Danh sách kho dược phẩm</h3>
+                      <p class="text-caption text-grey-darken-1 mb-0">Cập nhật theo thời gian thực từ PharmacyDB</p>
                     </div>
                     <v-btn variant="tonal" color="primary" size="small" prepend-icon="mdi-refresh" @click="fetchDrugs">
-                      Lam moi
+                      Làm mới
                     </v-btn>
                   </div>
                   <v-table density="comfortable" class="bg-surface">
                     <thead>
                       <tr>
-                        <th class="font-weight-bold text-caption text-grey-darken-1">TEN THUOC / HOAT CHAT</th>
-                        <th class="font-weight-bold text-caption text-grey-darken-1">DON VI</th>
-                        <th class="font-weight-bold text-caption text-grey-darken-1">DON GIA</th>
-                        <th class="font-weight-bold text-caption text-grey-darken-1">TON KHO</th>
-                        <th class="font-weight-bold text-caption text-grey-darken-1">TRANG THAI</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">TÊN THUỐC / HOẠT CHẤT</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">ĐƠN VỊ</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">ĐƠN GIÁ</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">TỒN KHO</th>
+                        <th class="font-weight-bold text-caption text-grey-darken-1">TRẠNG THÁI</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1208,7 +1147,7 @@
                           <div class="text-caption text-grey-darken-1">{{ d.activeIngredient }}</div>
                         </td>
                         <td class="text-body-2">{{ d.unit }}</td>
-                        <td class="font-weight-bold text-body-2">{{ formatMoney(d.price) }}d</td>
+                        <td class="font-weight-bold text-body-2">{{ formatMoney(d.price) }}đ</td>
                         <td class="font-weight-bold">{{ d.stock }}</td>
                         <td>
                           <v-chip
@@ -1217,14 +1156,14 @@
                             variant="flat"
                             class="font-weight-bold"
                           >
-                            {{ d.stock > 500 ? 'An toan' : d.stock > 100 ? 'Sap het' : 'Khan cap' }}
+                            {{ d.stock > 500 ? 'An toàn' : d.stock > 100 ? 'Sắp hết' : 'Khẩn cấp' }}
                           </v-chip>
                         </td>
                       </tr>
                       <tr v-if="drugs.length === 0">
                         <td colspan="5" class="text-center text-grey-darken-1 py-8">
                           <v-icon icon="mdi-package-variant" size="36" class="mb-2 d-block mx-auto" />
-                          Chua co du lieu kho thuoc
+                          Chưa có dữ liệu kho thuốc
                         </td>
                       </tr>
                     </tbody>
@@ -1239,11 +1178,11 @@
             <!-- Header -->
             <div class="d-flex justify-space-between align-center mb-6">
               <div>
-                <h2 class="text-h5 font-weight-black text-primary mb-1">Thu Vien Phi</h2>
-                <p class="text-body-2 text-grey-darken-1 mb-0">Xac nhan thanh toan hoa don phi kham + tien thuoc theo don</p>
+                <h2 class="text-h5 font-weight-black text-primary mb-1">Thu Viện Phí</h2>
+                <p class="text-body-2 text-grey-darken-1 mb-0">Xác nhận thanh toán hóa đơn phí khám + tiền thuốc theo đơn</p>
               </div>
               <v-chip color="warning" variant="tonal" prepend-icon="mdi-clock-outline">
-                {{ bills.filter(b => b.status === 'ChuaThanhToan').length }} cho thanh toan
+                {{ bills.filter(b => b.status === 'ChuaThanhToan').length }} chờ thanh toán
               </v-chip>
             </div>
 
@@ -1253,17 +1192,17 @@
                 <v-card border flat class="bg-surface rounded-xl overflow-hidden">
                   <div class="pa-5 border-b d-flex justify-space-between align-center">
                     <div>
-                      <h3 class="text-subtitle-1 font-weight-bold">Danh sach hoa don vien phi</h3>
-                      <p class="text-caption text-grey-darken-1 mb-0">Phi kham + thuoc theo don tu Medical Record Service</p>
+                      <h3 class="text-subtitle-1 font-weight-bold">Danh sách hóa đơn viện phí</h3>
+                      <p class="text-caption text-grey-darken-1 mb-0">Phí khám + thuốc theo đơn từ Medical Record Service</p>
                     </div>
                     <v-btn variant="tonal" color="primary" size="small" prepend-icon="mdi-refresh" @click="fetchBills">
-                      Lam moi
+                      Làm mới
                     </v-btn>
                   </div>
 
                   <div class="pa-4">
                     <v-alert v-if="bills.length === 0" type="info" variant="tonal" rounded="lg">
-                      Khong co hoa don nao can xu ly hom nay.
+                      Không có hóa đơn nào cần xử lý hôm nay.
                     </v-alert>
 
                     <v-card
@@ -1282,7 +1221,7 @@
                           </v-avatar>
                           <div>
                             <div class="font-weight-bold text-body-1">{{ b.patientName }}</div>
-                            <div class="text-caption text-grey-darken-1">SDD: {{ b.patientPhone }}</div>
+                            <div class="text-caption text-grey-darken-1">SĐT: {{ b.patientPhone }}</div>
                           </div>
                         </div>
                         <v-chip
@@ -1291,26 +1230,26 @@
                           size="small"
                           class="font-weight-bold"
                         >
-                          {{ b.status === 'DaThanhToan' ? 'Da Thanh Toan' : 'Cho Thanh Toan' }}
+                          {{ b.status === 'DaThanhToan' ? 'Đã Thanh Toán' : 'Chờ Thanh Toán' }}
                         </v-chip>
                       </div>
 
                       <!-- Bill detail -->
                       <div class="pa-4">
-                        <div class="text-caption text-grey-darken-1 mb-3">Ngay kham: {{ formatDate(b.date) }}</div>
+                        <div class="text-caption text-grey-darken-1 mb-3">Ngày khám: {{ formatDate(b.date) }}</div>
                         <v-divider class="mb-3" />
                         <div class="d-flex justify-space-between text-body-2 mb-2">
-                          <span class="text-grey-darken-1">Phi kham benh:</span>
-                          <span class="font-weight-bold">{{ formatMoney(b.consultationFee) }}d</span>
+                          <span class="text-grey-darken-1">Phí khám bệnh:</span>
+                          <span class="font-weight-bold">{{ formatMoney(b.consultationFee) }}đ</span>
                         </div>
                         <div class="d-flex justify-space-between text-body-2 mb-2">
-                          <span class="text-grey-darken-1">Tien thuoc:</span>
-                          <span class="font-weight-bold">{{ formatMoney(b.medicationFee) }}d</span>
+                          <span class="text-grey-darken-1">Tiền thuốc:</span>
+                          <span class="font-weight-bold">{{ formatMoney(b.medicationFee) }}đ</span>
                         </div>
                         <v-divider class="my-2" />
                         <div class="d-flex justify-space-between text-subtitle-1 font-weight-black">
-                          <span>Tong cong:</span>
-                          <span class="text-success">{{ formatMoney(b.totalAmount) }}d</span>
+                          <span>Tổng cộng:</span>
+                          <span class="text-success">{{ formatMoney(b.totalAmount) }}đ</span>
                         </div>
                         <v-btn
                           v-if="b.status === 'ChuaThanhToan'"
@@ -1321,7 +1260,7 @@
                           :loading="loading"
                           @click="payBill(b.id)"
                         >
-                          Xac nhan thu vien phi
+                          Xác nhận thu viện phí
                         </v-btn>
                       </div>
                     </v-card>
@@ -1332,47 +1271,47 @@
               <!-- Panel thong ke nhanh -->
               <v-col cols="12" lg="4">
                 <v-card border flat class="bg-surface pa-5 rounded-xl mb-4">
-                  <h3 class="text-subtitle-1 font-weight-bold mb-4">Tong ket hom nay</h3>
+                  <h3 class="text-subtitle-1 font-weight-bold mb-4">Tổng kết hôm nay</h3>
                   <div class="d-flex justify-space-between align-center mb-4">
-                    <div class="text-caption text-grey-darken-1">Tong hoa don</div>
+                    <div class="text-caption text-grey-darken-1">Tổng hóa đơn</div>
                     <div class="text-h6 font-weight-black">{{ bills.length }}</div>
                   </div>
                   <div class="d-flex justify-space-between align-center mb-4">
-                    <div class="text-caption text-grey-darken-1">Da thanh toan</div>
+                    <div class="text-caption text-grey-darken-1">Đã thanh toán</div>
                     <div class="text-h6 font-weight-black text-success">{{ bills.filter(b => b.status === 'DaThanhToan').length }}</div>
                   </div>
                   <div class="d-flex justify-space-between align-center mb-4">
-                    <div class="text-caption text-grey-darken-1">Cho thu</div>
+                    <div class="text-caption text-grey-darken-1">Chờ thu</div>
                     <div class="text-h6 font-weight-black text-warning">{{ bills.filter(b => b.status === 'ChuaThanhToan').length }}</div>
                   </div>
                   <v-divider class="my-3" />
                   <div class="d-flex justify-space-between align-center">
-                    <div class="text-caption text-grey-darken-1 font-weight-bold">Doanh thu da thu</div>
+                    <div class="text-caption text-grey-darken-1 font-weight-bold">Doanh thu đã thu</div>
                     <div class="text-subtitle-1 font-weight-black text-success">
-                      {{ formatMoney(bills.filter(b => b.status === 'DaThanhToan').reduce((s, b) => s + (b.totalAmount || 0), 0)) }}d
+                      {{ formatMoney(bills.filter(b => b.status === 'DaThanhToan').reduce((s, b) => s + (b.totalAmount || 0), 0)) }}đ
                     </div>
                   </div>
                 </v-card>
 
                 <v-card border flat class="bg-surface pa-5 rounded-xl">
-                  <h3 class="text-subtitle-1 font-weight-bold mb-3">Huong dan quy trinh</h3>
+                  <h3 class="text-subtitle-1 font-weight-bold mb-3">Hướng dẫn quy trình</h3>
                   <div class="d-flex align-start gap-3 mb-3">
                     <v-avatar color="primary" variant="tonal" size="28" class="mt-1">
                       <span class="text-caption font-weight-bold">1</span>
                     </v-avatar>
-                    <p class="text-body-2 text-grey-darken-1 mb-0">Benh nhan kham xong, bac si ke don thuoc (prescription.created)</p>
+                    <p class="text-body-2 text-grey-darken-1 mb-0">Bệnh nhân khám xong, bác sĩ kê đơn thuốc (prescription.created)</p>
                   </div>
                   <div class="d-flex align-start gap-3 mb-3">
                     <v-avatar color="primary" variant="tonal" size="28" class="mt-1">
                       <span class="text-caption font-weight-bold">2</span>
                     </v-avatar>
-                    <p class="text-body-2 text-grey-darken-1 mb-0">He thong tu dong tinh phi kham + tien thuoc theo don</p>
+                    <p class="text-body-2 text-grey-darken-1 mb-0">Hệ thống tự động tính phí khám + tiền thuốc theo đơn</p>
                   </div>
                   <div class="d-flex align-start gap-3">
                     <v-avatar color="success" variant="tonal" size="28" class="mt-1">
                       <span class="text-caption font-weight-bold">3</span>
                     </v-avatar>
-                    <p class="text-body-2 text-grey-darken-1 mb-0">Thu ngan bam "Xac nhan thu vien phi" de hoan tat thanh toan</p>
+                    <p class="text-body-2 text-grey-darken-1 mb-0">Thu ngân bấm "Xác nhận thu viện phí" để hoàn tất thanh toán</p>
                   </div>
                 </v-card>
               </v-col>
@@ -1856,6 +1795,79 @@
       </div> <!-- Đóng thẻ div v-else -->
       </v-container>
     </v-main>
+
+    <!-- Dialog Nhap thuoc moi -->
+    <v-dialog v-model="addDrugDialog" max-width="500">
+      <v-card class="rounded-xl pa-6 bg-surface">
+        <div class="text-subtitle-1 font-weight-bold mb-4 text-primary d-flex align-center">
+          <v-icon icon="mdi-plus-circle" class="mr-2" />
+          Nhập thuốc mới vào kho
+        </div>
+        <v-form @submit.prevent="addNewDrug">
+          <v-text-field
+            v-model="drugForm.name"
+            label="Tên thuốc"
+            variant="outlined"
+            density="comfortable"
+            rounded="lg"
+            class="mb-3"
+            prepend-inner-icon="mdi-pill"
+            required
+          />
+          <v-text-field
+            v-model="drugForm.activeIngredient"
+            label="Hoạt chất chính"
+            variant="outlined"
+            density="comfortable"
+            rounded="lg"
+            class="mb-3"
+            prepend-inner-icon="mdi-molecule"
+          />
+          <v-row dense>
+            <v-col cols="4">
+              <v-text-field
+                v-model="drugForm.unit"
+                label="Đơn vị"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                required
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                v-model.number="drugForm.price"
+                label="Giá bán"
+                type="number"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                required
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                v-model.number="drugForm.stock"
+                label="Tồn kho"
+                type="number"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                required
+              />
+            </v-col>
+          </v-row>
+          <div class="d-flex gap-2 mt-6">
+            <v-btn variant="outlined" color="grey" class="font-weight-bold flex-grow-1" @click="addDrugDialog = false">
+              Hủy
+            </v-btn>
+            <v-btn type="submit" color="primary" class="font-weight-bold flex-grow-1" prepend-icon="mdi-package-variant-plus" :loading="loading">
+              Nhập kho thuốc
+            </v-btn>
+          </div>
+        </v-form>
+      </v-card>
+    </v-dialog>
   </v-layout>
 </template>
 
@@ -3241,6 +3253,7 @@ export default {
           })
           showAlert(`Đã thêm thuốc mới ${drugForm.value.name} vào kho thành công (Giả lập)!`, 'success')
           drugForm.value = { name: '', activeIngredient: '', unit: 'Viên', price: 0, stock: 0 }
+          addDrugDialog.value = false
         } else {
           const url = `${authApiUrl.value}/Medicine`
           const res = await fetch(url, {
@@ -3263,6 +3276,7 @@ export default {
           }
           showAlert(`Đã thêm thuốc mới ${drugForm.value.name} vào kho Nhóm 6 thành công!`, 'success')
           drugForm.value = { name: '', activeIngredient: '', unit: 'Viên', price: 0, stock: 0 }
+          addDrugDialog.value = false
           await fetchDrugs() // Tải lại danh sách thuốc thực tế từ Nhóm 6
         }
       } catch (err) {
@@ -3326,6 +3340,7 @@ export default {
       maxPatients: 10
     })
     const editDoctorDialog = ref(false)
+    const addDrugDialog = ref(false)
     const editingDoctor = ref({
       id: '',
       fullName: '',
@@ -3943,6 +3958,7 @@ export default {
       submitConsultation,
       payBill,
       addNewDrug,
+      addDrugDialog,
       addNewDoctor,
       editDoctor,
       updateDoctorInfo,

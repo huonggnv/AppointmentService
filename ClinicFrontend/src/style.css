@@ -4,16 +4,16 @@
 
 /* CSS Variables */
 :root {
-  --primary-color: #1e40af;
-  --primary-hover: #1e3a8a;
+  --primary-color: #1274e3;
+  --primary-hover: #1c49c6;
   --accent-color: #10b981;
   --accent-hover: #059669;
   --secondary-color: #f8fafc;
-  --sidebar-bg: #0f172a;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --border-color: #f1f5f9;
-  --danger-color: #ef4444;
+  --sidebar-bg: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --danger-color: #ff0019;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
@@ -333,40 +333,40 @@ fieldset {
 /* =================================================================== */
 /* ===== 7. Premium Dark Sidebar Style ===== */
 /* =================================================================== */
-.v-navigation-drawer.border-e {
-  background-color: #0f172a !important;
-  color: #f1f5f9 !important;
-  border-right: 1px solid #1e293b !important;
+.v-navigation-drawer {
+  background-color: #ffffff !important;
+  color: var(--text-primary) !important;
+  border-right: 1px solid var(--border-color) !important;
 }
 
 .sidebar-logo {
-  border-bottom: 1px solid #1e293b !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 .sidebar-logo .text-subtitle-1 {
-  color: #ffffff !important;
+  color: var(--primary-color) !important;
 }
 
 .sidebar-logo .text-caption {
-  color: #94a3b8 !important;
+  color: var(--text-secondary) !important;
 }
 
 .sidebar-item {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border-radius: 10px !important;
-  color: #94a3b8 !important;
+  transition: all 0.2s ease !important;
+  border-radius: 8px !important;
+  color: var(--text-secondary) !important;
   margin-bottom: 4px !important;
 }
 
 .sidebar-item .v-icon {
-  color: #94a3b8 !important;
+  color: var(--text-secondary) !important;
 }
 
 .sidebar-item:hover,
 .sidebar-item-active {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%) !important;
+  background-color: var(--primary-color) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25) !important;
+  box-shadow: none !important;
 }
 
 .sidebar-item:hover .v-icon,
