@@ -305,8 +305,24 @@
         </v-card>
       </v-menu>
 
-      <!-- User Avatar Chip (chi hien khi chua dang nhap hoac dang o che do TV) -->
-      <div v-if="!currentUser.token" class="mr-2">
+      <!-- User Info & Logout button (hiển thị ở góc trên bên phải khi đã đăng nhập) -->
+      <div v-if="currentUser.token" class="d-flex align-center mr-3">
+        <div class="d-none d-sm-flex flex-column align-end mr-3">
+          <span class="text-caption font-weight-bold text-grey-darken-3" style="line-height: 1.2;">{{ currentUser.username }}</span>
+          <v-chip size="x-small" color="primary" variant="flat" class="mt-1" style="height: 16px; font-size: 9px;">{{ currentUser.role }}</v-chip>
+        </div>
+        <v-avatar color="primary" size="36" class="text-caption font-weight-bold text-white mr-2">
+          {{ (currentUser.username || 'TV').substring(0, 2).toUpperCase() }}
+        </v-avatar>
+        <v-btn
+          variant="text"
+          color="error"
+          icon="mdi-logout"
+          @click="handleLogout"
+          title="Đăng xuất"
+        />
+      </div>
+      <div v-else class="mr-3">
         <v-btn color="primary" size="small" variant="flat" prepend-icon="mdi-login" @click="router.push({ name: 'Auth' })">
           Đăng nhập
         </v-btn>
@@ -411,28 +427,29 @@
 
                   <!-- Doctors List -->
                   <div class="text-subtitle-2 font-weight-bold mb-2">Danh sách Bác sĩ</div>
-                  <v-row>
-                    <v-col v-for="doc in filteredDoctors" :key="doc.id" cols="12" sm="6">
+                  <v-slide-group show-arrows class="mb-4">
+                    <v-slide-group-item v-for="doc in filteredDoctors" :key="doc.id">
                       <v-card
+                        width="240"
                         border
                         flat
                         :color="bookingForm.doctorId === doc.id ? 'primary-darken-1' : 'surface'"
-                        class="pa-4 cursor-pointer hover-card"
+                        class="pa-4 ma-2 cursor-pointer hover-card"
                         :style="bookingForm.doctorId === doc.id ? 'border: 2px solid #003D9B !important' : ''"
                         @click="selectDoctor(doc)"
                       >
-                        <div class="d-flex justify-between align-center mb-1">
-                          <span class="font-weight-bold text-subtitle-1">{{ doc.fullName }}</span>
+                        <div class="d-flex justify-space-between align-center mb-1">
+                          <span class="font-weight-bold text-subtitle-1 text-truncate" style="max-width: 140px;">{{ doc.fullName }}</span>
                           <v-chip size="x-small" :color="getSpecialtyColor(doc.specialty)" variant="flat">{{ doc.specialty }}</v-chip>
                         </div>
-                        <div class="text-caption mb-2" :class="bookingForm.doctorId === doc.id ? 'text-grey-lighten-2' : 'text-grey-darken-1'">{{ doc.qualifications }}</div>
+                        <div class="text-caption mb-2 text-truncate" :class="bookingForm.doctorId === doc.id ? 'text-grey-lighten-2' : 'text-grey-darken-1'">{{ doc.qualifications }}</div>
                         <div class="d-flex justify-space-between align-center">
                           <span class="text-caption text-grey">Phí khám:</span>
                           <span class="font-weight-bold text-success">{{ formatMoney(doc.consultationFee) }}đ</span>
                         </div>
                       </v-card>
-                    </v-col>
-                  </v-row>
+                    </v-slide-group-item>
+                  </v-slide-group>
 
                   <v-divider class="my-6" />
 
@@ -522,13 +539,14 @@
                             v-for="slot in activeTimeSlotsList"
                             :key="slot.time"
                             :value="slot.time"
-                            :disabled="slot.isBooked"
-                            :color="slot.isBooked ? 'error' : (bookingForm.timeSlot === slot.time ? 'primary' : 'default')"
+                            :color="slot.isBooked ? 'error' : (bookingForm.timeSlot === slot.time ? 'primary' : 'success')"
                             variant="elevated"
                             class="ma-1 font-weight-bold"
+                            :style="slot.isBooked ? 'pointer-events: none; opacity: 0.85;' : ''"
                           >
                             {{ slot.displayTime }}
                             <span v-if="slot.isBooked" class="text-caption ml-1 font-weight-regular">(Đã đặt)</span>
+                            <span v-else class="text-caption ml-1 font-weight-regular">(Trống)</span>
                           </v-chip>
                         </v-chip-group>
                         
@@ -781,7 +799,7 @@
                     </v-alert>
 
                     <v-row v-else density="comfortable">
-                      <v-col v-for="app in pendingAppointments" :key="app.id" cols="12">
+                      <v-col v-for="app in paginatedPendingAppointments" :key="app.id" cols="12">
                         <v-card border flat class="pa-4 d-flex justify-space-between align-center">
                           <div>
                             <div class="d-flex align-center gap-2 mb-1">
@@ -812,6 +830,16 @@
                         </v-card>
                       </v-col>
                     </v-row>
+                    <!-- Pagination for Pending Appointments -->
+                    <div v-if="pendingAppointments.length > 5" class="d-flex justify-center mt-4">
+                      <v-pagination
+                        v-model="pendingPage"
+                        :length="pendingPageCount"
+                        :total-visible="5"
+                        size="small"
+                        active-color="primary"
+                      />
+                    </div>
                   </div>
                 </v-card>
               </v-col>
@@ -1345,9 +1373,21 @@
                     <v-card border flat class="bg-surface pa-6 mb-6">
                       <div class="d-flex justify-space-between align-center mb-4">
                         <div class="text-h6 font-weight-bold text-primary mb-0">Danh sách bác sĩ phòng khám</div>
-                        <v-btn color="success" prepend-icon="mdi-plus" class="font-weight-bold" @click="addDoctorDialog = true">
-                          Thêm bác sĩ
-                        </v-btn>
+                        <div class="d-flex gap-2">
+                          <v-btn color="info" prepend-icon="mdi-upload" class="font-weight-bold" @click="triggerDoctorImport">
+                            Import Bác sĩ
+                          </v-btn>
+                          <input
+                            ref="doctorImportInput"
+                            type="file"
+                            accept=".csv"
+                            style="display: none;"
+                            @change="handleDoctorImport"
+                          />
+                          <v-btn color="success" prepend-icon="mdi-plus" class="font-weight-bold" @click="addDoctorDialog = true">
+                            Thêm bác sĩ
+                          </v-btn>
+                        </div>
                       </div>
                       
                       <v-table density="comfortable" class="bg-surface rounded border">
@@ -1362,7 +1402,7 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <tr v-for="doc in doctors" :key="doc.id">
+                          <tr v-for="doc in paginatedDoctors" :key="doc.id">
                             <td class="font-weight-bold">{{ doc.fullName }}</td>
                             <td>
                               <v-chip :color="getSpecialtyColor(doc.specialty)" size="small" variant="flat">{{ doc.specialty }}</v-chip>
@@ -1381,6 +1421,16 @@
                           </tr>
                         </tbody>
                       </v-table>
+                      <!-- Pagination for Doctors -->
+                      <div v-if="doctors.length > 5" class="d-flex justify-center mt-4">
+                        <v-pagination
+                          v-model="doctorPage"
+                          :length="doctorPageCount"
+                          :total-visible="5"
+                          size="small"
+                          active-color="primary"
+                        />
+                      </div>
                     </v-card>
                   </v-col>
                 </v-row>
@@ -1478,7 +1528,21 @@
                   <!-- Bảng Lịch trực hiện tại -->
                   <v-col cols="12" md="8">
                     <v-card border flat class="bg-surface pa-6 mb-6">
-                      <div class="text-h6 font-weight-bold mb-4 text-primary">Lịch phân ca trực bác sĩ</div>
+                      <div class="d-flex justify-space-between align-center mb-4">
+                        <div class="text-h6 font-weight-bold text-primary mb-0">Lịch phân ca trực bác sĩ</div>
+                        <div>
+                          <v-btn color="info" size="small" prepend-icon="mdi-upload" class="font-weight-bold" @click="triggerScheduleImport">
+                            Import Lịch trực
+                          </v-btn>
+                          <input
+                            ref="scheduleImportInput"
+                            type="file"
+                            accept=".csv"
+                            style="display: none;"
+                            @change="handleScheduleImport"
+                          />
+                        </div>
+                      </div>
                       
                       <v-table density="comfortable" class="bg-surface rounded border">
                         <thead>
@@ -1491,7 +1555,7 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <tr v-for="sch in adminSchedules" :key="sch.id">
+                          <tr v-for="sch in paginatedSchedules" :key="sch.id">
                             <td class="font-weight-bold">{{ sch.doctorName }}</td>
                             <td>{{ formatDate(sch.date) }}</td>
                             <td>
@@ -1509,6 +1573,16 @@
                           </tr>
                         </tbody>
                       </v-table>
+                      <!-- Pagination for Schedules -->
+                      <div v-if="adminSchedules.length > 5" class="d-flex justify-center mt-4">
+                        <v-pagination
+                          v-model="schedulePage"
+                          :length="schedulePageCount"
+                          :total-visible="5"
+                          size="small"
+                          active-color="primary"
+                        />
+                      </div>
                     </v-card>
                   </v-col>
                 </v-row>
@@ -1932,6 +2006,18 @@ export default {
       role: localStorage.getItem('clinic_user_role') || '',
       token: localStorage.getItem('clinic_jwt_token') || ''
     })
+
+    // Pagination refs
+    const doctorPage = ref(1)
+    const doctorPageSize = 5
+    const schedulePage = ref(1)
+    const schedulePageSize = 5
+    const pendingPage = ref(1)
+    const pendingPageSize = 5
+
+    // File input refs for import
+    const doctorImportInput = ref(null)
+    const scheduleImportInput = ref(null)
 
     const jwtToken = computed({
       get: () => currentUser.value.token,
@@ -2938,6 +3024,7 @@ export default {
     const selectConsultingPatient = (qItem) => {
       activeConsultation.value = {
         queueId: qItem.id,
+        appointmentId: qItem.appointmentId,
         patientName: qItem.patientName,
         patientPhone: qItem.patientPhone || '0900000000',
         queueNumber: qItem.queueNumber,
@@ -3023,7 +3110,7 @@ export default {
             id: 'b_' + Date.now(),
             patientName: activeConsultation.value.patientName,
             patientPhone: activeConsultation.value.patientPhone,
-            appointmentId: activeConsultation.value.queueId,
+            appointmentId: activeConsultation.value.appointmentId,
             consultationFee: consultFee,
             medicationFee: medFee,
             totalAmount: consultFee + medFee,
@@ -3122,7 +3209,7 @@ export default {
               body: JSON.stringify({
                 patientProfileId: patientProfileId,
                 doctorId: doctorPortal.value.doctorId,
-                appointmentId: activeConsultation.value.queueId,
+                appointmentId: activeConsultation.value.appointmentId,
                 examinationDate: new Date().toISOString(),
                 symptoms: activeConsultation.value.symptoms,
                 diagnosis: activeConsultation.value.diagnosis,
@@ -3923,6 +4010,170 @@ export default {
       return 'primary'
     }
 
+    // Pagination computations
+    const paginatedDoctors = computed(() => {
+      return doctors.value.slice((doctorPage.value - 1) * doctorPageSize, doctorPage.value * doctorPageSize)
+    })
+    const doctorPageCount = computed(() => {
+      return Math.ceil(doctors.value.length / doctorPageSize) || 1
+    })
+
+    const paginatedSchedules = computed(() => {
+      return adminSchedules.value.slice((schedulePage.value - 1) * schedulePageSize, schedulePage.value * schedulePageSize)
+    })
+    const schedulePageCount = computed(() => {
+      return Math.ceil(adminSchedules.value.length / schedulePageSize) || 1
+    })
+
+    const paginatedPendingAppointments = computed(() => {
+      return pendingAppointments.value.slice((pendingPage.value - 1) * pendingPageSize, pendingPage.value * pendingPageSize)
+    })
+    const pendingPageCount = computed(() => {
+      return Math.ceil(pendingAppointments.value.length / pendingPageSize) || 1
+    })
+
+    // Import functions
+    const triggerDoctorImport = () => {
+      if (doctorImportInput.value) {
+        doctorImportInput.value.click()
+      }
+    }
+
+    const handleDoctorImport = (e) => {
+      const file = e.target.files[0]
+      if (!file) return
+      
+      const reader = new FileReader()
+      reader.onload = async (evt) => {
+        try {
+          const text = evt.target.result
+          const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
+          const startIdx = lines[0].toLowerCase().includes('name') || lines[0].toLowerCase().includes('bác sĩ') ? 1 : 0
+          
+          let importCount = 0
+          for (let i = startIdx; i < lines.length; i++) {
+            const parts = lines[i].split(',')
+            if (parts.length >= 4) {
+              const fullName = parts[0].trim()
+              const specialty = parts[1].trim()
+              const qualifications = parts[2].trim()
+              const consultationFee = parseInt(parts[3].trim()) || 100000
+              
+              if (isMockMode.value) {
+                doctors.value.push({
+                  id: 'd_imported_' + Date.now() + '_' + i,
+                  fullName,
+                  specialty,
+                  qualifications,
+                  consultationFee,
+                  isActive: true
+                })
+                importCount++
+              } else {
+                const url = `${apiUrl.value}/doctors`
+                const headers = { 'Content-Type': 'application/json' }
+                if (jwtToken.value) {
+                  headers['Authorization'] = `Bearer ${jwtToken.value}`
+                }
+                const res = await fetch(url, {
+                  method: 'POST',
+                  headers,
+                  body: JSON.stringify({ fullName, specialty, qualifications, consultationFee })
+                })
+                if (res.ok) importCount++
+              }
+            }
+          }
+          
+          showAlert(`Đã import thành công ${importCount} bác sĩ!`, 'success')
+          await fetchDoctors()
+        } catch (err) {
+          showAlert('Lỗi khi import file bác sĩ: ' + err.message, 'error')
+        }
+      }
+      reader.readAsText(file)
+      e.target.value = ''
+    }
+
+    const triggerScheduleImport = () => {
+      if (scheduleImportInput.value) {
+        scheduleImportInput.value.click()
+      }
+    }
+
+    const handleScheduleImport = (e) => {
+      const file = e.target.files[0]
+      if (!file) return
+      
+      const reader = new FileReader()
+      reader.onload = async (evt) => {
+        try {
+          const text = evt.target.result
+          const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
+          const startIdx = lines[0].toLowerCase().includes('doctor') || lines[0].toLowerCase().includes('ngày') ? 1 : 0
+          
+          let importCount = 0
+          for (let i = startIdx; i < lines.length; i++) {
+            const parts = lines[i].split(',')
+            if (parts.length >= 4) {
+              const doctorId = parts[0].trim()
+              const dateStr = parts[1].trim()
+              const shiftStr = parts[2].trim()
+              const maxPatients = parseInt(parts[3].trim()) || 10
+              const shiftVal = shiftStr === 'Sang' ? 1 : (shiftStr === 'Chieu' ? 2 : 3)
+              
+              let resolvedDoctorId = doctorId
+              const matchedDoc = doctors.value.find(d => d.fullName.toLowerCase() === doctorId.toLowerCase() || d.id === doctorId)
+              if (matchedDoc) {
+                resolvedDoctorId = matchedDoc.id
+              }
+              
+              if (isMockMode.value) {
+                const startTime = shiftStr === 'Sang' ? '08:00:00' : (shiftStr === 'Chieu' ? '13:30:00' : '18:00:00')
+                const endTime = shiftStr === 'Sang' ? '12:00:00' : (shiftStr === 'Chieu' ? '17:30:00' : '21:00:00')
+                adminSchedules.value.unshift({
+                  id: 'sch_imported_' + Date.now() + '_' + i,
+                  doctorId: resolvedDoctorId,
+                  doctorName: matchedDoc ? matchedDoc.fullName : 'Bác sĩ nhập khẩu',
+                  date: dateStr,
+                  shiftType: shiftStr,
+                  startTime,
+                  endTime,
+                  maxPatients,
+                  currentBookings: 0
+                })
+                importCount++
+              } else {
+                const url = `${apiUrl.value}/schedules`
+                const headers = { 'Content-Type': 'application/json' }
+                if (jwtToken.value) {
+                  headers['Authorization'] = `Bearer ${jwtToken.value}`
+                }
+                const res = await fetch(url, {
+                  method: 'POST',
+                  headers,
+                  body: JSON.stringify({
+                    doctorId: resolvedDoctorId,
+                    date: dateStr,
+                    shift: shiftVal,
+                    maxPatients
+                  })
+                })
+                if (res.ok) importCount++
+              }
+            }
+          }
+          
+          showAlert(`Đã import thành công ${importCount} lịch trực!`, 'success')
+          await fetchAdminSchedules()
+        } catch (err) {
+          showAlert('Lỗi khi import file lịch trực: ' + err.message, 'error')
+        }
+      }
+      reader.readAsText(file)
+      e.target.value = ''
+    }
+
     return {
       // Sidebar & Layout
       sidebarOpen,
@@ -3986,6 +4237,25 @@ export default {
       patientProfile,
       patientHistoryDialog,
       adminFinancials,
+
+      // Pagination refs and lists
+      doctorPage,
+      paginatedDoctors,
+      doctorPageCount,
+      schedulePage,
+      paginatedSchedules,
+      schedulePageCount,
+      pendingPage,
+      paginatedPendingAppointments,
+      pendingPageCount,
+
+      // Import inputs & functions
+      doctorImportInput,
+      scheduleImportInput,
+      triggerDoctorImport,
+      handleDoctorImport,
+      triggerScheduleImport,
+      handleScheduleImport,
 
       // Functions
       selectDoctor,
