@@ -363,3 +363,8 @@ MigrationBackup/
 FodyWeavers.xsd
 Hướng dẫn đề tài Fullstack.pdf
 qlsinhvien
+
+# Exclude specific temporary jpg files at the root
+/1.jpg
+/2.jpg
+/3.jpg
